@@ -1,7 +1,7 @@
 import socket
 import multiprocessing
 
-from RtspController import RtspController
+from server.RtspController import RtspController
 
 class Server:
     def __init__(self, addr, rtspPort, rtpPort, videoDir):

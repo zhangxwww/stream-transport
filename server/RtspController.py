@@ -3,7 +3,7 @@ import os
 import cv2
 import socket
 
-from VideoRtp import VideoRtp
+from server.VideoRtp import VideoRtp
 
 class RtspController:
     def __init__(self, rtspSocket, addr, port, clientAddr, videoDir):

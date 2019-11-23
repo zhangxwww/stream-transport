@@ -1,8 +1,8 @@
 import threading
 import cv2
 
-from Rtp import Rtp
-from RtpPacket import RtpPacket
+from server.Rtp import Rtp
+from server.RtpPacket import RtpPacket
 
 class VideoRtp(Rtp):
     def __init__(self, addr, port, *args, **kwargs):
