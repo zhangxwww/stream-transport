@@ -5,8 +5,6 @@ import socket
 
 from VideoRtp import VideoRtp
 
-
-
 class RtspController:
     def __init__(self, rtspSocket, addr, port, clientAddr, videoDir):
         self.rtspSocket = rtspSocket
@@ -157,3 +155,5 @@ class RtspController:
             self.rtspSocket.shutdown(socket.SHUT_RDWR)
             self.rtspSocket.close()
             self.rtspSocket = None
+        self.cap.release()
+        self.cap = None

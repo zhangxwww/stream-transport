@@ -28,6 +28,8 @@ class VideoRtp(Rtp):
         self.encode()
 
     def encode(self):
+        if self.cap is None:
+            return
         res, frame = self.cap.read()
         if not res:
             return
