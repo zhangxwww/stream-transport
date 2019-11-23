@@ -1,0 +1,33 @@
+import socket
+import multiprocessing
+
+from RtspController import RtspController
+
+class Server:
+    def __init__(self, addr, rtspPort, rtpPort, videoDir):
+        self.addr = addr
+        self.rtspPort = rtspPort
+        self.rtpPort = rtpPort
+
+        self.videoDir = videoDir
+
+        self.listenRtspSocket = None
+
+        self.initConnection()
+        self.startServer()
+
+    def initConnection(self):
+        self.listenRtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.listenRtspSocket.bind((self.addr, self.rtspPort))
+
+    def startServer(self):
+        self.listenRtspSocket.listen(10)
+        print('listening ...')
+
+        while True:
+            rtspSocket, clientAddr = self.listenRtspSocket.accept()
+            multiprocessing.Process(target=self.handleNewConnection, args=(rtspSocket, clientAddr))
+
+    def handleNewConnection(self, rtspSocket, clientAddr):
+        self.listenRtspSocket.close()
+        RtspController(rtspSocket, self.addr, self.rtpPort, clientAddr, self.videoDir).start()
