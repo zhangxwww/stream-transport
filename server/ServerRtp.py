@@ -1,9 +1,9 @@
 import socket
 import threading
 
-class Rtp(threading.Thread):
+class ServerRtp(threading.Thread):
     def __init__(self, addr, port, *args, **kwargs):
-        super(Rtp, self).__init__(*args, **kwargs)
+        super(ServerRtp, self).__init__(*args, **kwargs)
 
         self.addr = addr
         self.port = port
@@ -29,6 +29,10 @@ class Rtp(threading.Thread):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((self.addr, self.port))
 
+    def closeSocket(self):
+        self.socket.close()
+        self.socket = None
+
     def setInterval(self, interval):
         self.interval = interval
 
@@ -46,6 +50,7 @@ class Rtp(threading.Thread):
             self._pause.wait()
             self.running()
             self._send_interval.wait(self.interval)
+        self.closeSocket()
 
     def pause(self):
         self._pause.clear()

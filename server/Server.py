@@ -1,7 +1,7 @@
 import socket
 import multiprocessing
 
-from server.RtspController import RtspController
+from server.ServerRtspController import ServerRtspController
 
 class Server:
     def __init__(self, addr, rtspPort, rtpPort, videoDir):
@@ -31,16 +31,17 @@ class Server:
 
     def handleNewConnection(self, rtspSocket, clientAddr):
         self.listenRtspSocket.close()
-        RtspController(rtspSocket, self.addr, self.rtpPort, clientAddr, self.videoDir).start()
+        ServerRtspController(rtspSocket, self.addr, self.rtpPort, clientAddr, self.videoDir).start()
 
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--addr', type=str, default='0.0.0.0')
+    parser.add_argument('--host', type=str, default='0.0.0.0')
     parser.add_argument('--rtspport', type=int, default=554)
     parser.add_argument('--rtpport', type=int, default=22222)
-    parser.add_argument('--dir', type=str, default='../../movies/')
+    parser.add_argument('--dir', type=str, default='../movies/')
 
     args = vars(parser.parse_args())
-    Server(args['addr'], args['rtspport'], args['rtpport'], args['dir'])
+    
+    Server(args['host'], args['rtspport'], args['rtpport'], args['dir'])

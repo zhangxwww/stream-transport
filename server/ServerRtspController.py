@@ -3,9 +3,9 @@ import os
 import cv2
 import socket
 
-from server.VideoRtp import VideoRtp
+from server.VideoServerRtp import VideoServerRtp
 
-class RtspController:
+class ServerRtspController:
     def __init__(self, rtspSocket, addr, port, clientAddr, videoDir):
         self.rtspSocket = rtspSocket
         self.addr = addr
@@ -71,12 +71,12 @@ class RtspController:
             return
 
     def sendDescribeResponse(self, seq, info):
-        response = 'RTSP/1.0 200 OK\nCSeq: {seq}\nSession: {session}\n'.format(**{
+        response = 'RTSP/1.0 200 OK\nCSeq: {seq}\nSession: {session}'.format(**{
             'seq': seq,
             'session': self.sessionid
         })
         if 'video' in info.keys():
-            videoInfo = 'm=video 0\na=control:streamid=0\na=length:{length}\na=framerate:{fs}'.format(**{
+            videoInfo = '\nm=video 0\na=control:streamid=0\na=length:{length}\na=framerate:{fs}'.format(**{
                 'length': info['video']['length'],
                 'fs': info['video']['framerate']
             })
@@ -131,7 +131,7 @@ class RtspController:
         pass
 
     def setup(self):
-        self.videoRtp = VideoRtp(self.addr, self.rtpPort)
+        self.videoRtp = VideoServerRtp(self.addr, self.rtpPort)
         self.videoRtp.setClientInfo(self.clientAddr, self.clientRtpPort)
         self.videoRtp.setSsrc(self.ssrc)
         self.videoRtp.setCapture(self.cap)

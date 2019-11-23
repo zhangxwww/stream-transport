@@ -1,12 +1,12 @@
 import threading
 import cv2
 
-from server.Rtp import Rtp
+from server.ServerRtp import ServerRtp
 from server.RtpPacket import RtpPacket
 
-class VideoRtp(Rtp):
+class VideoServerRtp(ServerRtp):
     def __init__(self, addr, port, *args, **kwargs):
-        super(VideoRtp, self).__init__(addr, port, *args, **kwargs)
+        super(VideoServerRtp, self).__init__(addr, port, *args, **kwargs)
 
         self.currentSeq = 0
         self.totalLength = 0
