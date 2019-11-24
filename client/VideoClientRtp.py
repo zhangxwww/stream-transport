@@ -40,7 +40,7 @@ class VideoClientRtp(ClientRtp):
                 rtpPacket.decode(data)
                 marker = rtpPacket.marker()
                 currentSeqNbr = rtpPacket.seqNum()
-                print('Current Seq Num: {}'.format(currentSeqNbr))
+                #print('Current Seq Num: {}'.format(currentSeqNbr))
 
                 if currentSeqNbr > self.seqNum:
                     # TODO assume in order
@@ -60,9 +60,15 @@ class VideoClientRtp(ClientRtp):
     @staticmethod
     def decode(byteStream):
         try:
-            frame = Image.open(BytesIO(byteStream.getvalue()))
+            frame = Image.open(byteStream)
+
+            # TODO
+            # frame = frame.resize((640, 360))
+
             frame = ImageTk.PhotoImage(frame)
+            print('ok frame')
         except OSError:
+            print('broken frame')
             frame = None
         return frame
 
@@ -76,4 +82,5 @@ class VideoClientRtp(ClientRtp):
             self.bufferSemaphore.release()
             if frame is None:
                 self._display_interval.wait(self.interval)
-            self.displayCallback(frame)
+            else:
+                self.displayCallback(frame)

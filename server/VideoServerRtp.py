@@ -36,6 +36,7 @@ class VideoServerRtp(ServerRtp):
         if self.cap is None:
             return
         res, frame = self.cap.read()
+        frame = cv2.resize(frame, (480, 270))
         if not res:
             return
         encode = cv2.imencode('.jpg', frame)
@@ -45,6 +46,7 @@ class VideoServerRtp(ServerRtp):
         self.bufferSemaphore.acquire()
         self.encodeFrame = data
         self.sendSemaphore.release()
+        self.currentFrame += 1
 
     def sendData(self):
         while self._stop.is_set():
@@ -72,9 +74,8 @@ class VideoServerRtp(ServerRtp):
         self.cap = cap
         self.totalLength = cap.get(cv2.CAP_PROP_FRAME_COUNT)
         fs = cap.get(cv2.CAP_PROP_FPS)
-        self.setInterval(1 / fs)
+        self.setInterval(1 / fs / 2)
 
     def setPosition(self, pos):
         self.currentFrame = pos
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
-

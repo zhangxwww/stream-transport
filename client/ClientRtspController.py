@@ -61,7 +61,7 @@ class ClientRtspController:
             if self.videoRtp is None:
                 self.openRtpPort()
             self.videoRtp.setDisplay(self.updateVideo)
-            self.videoRtp.setInterval(1 / self.videoFrameRate)
+            self.videoRtp.setInterval(1 / self.videoFrameRate / 2)
             self.videoRtp.start()
             self.sendRtspRequest(self.PLAY)
 
