@@ -1,23 +1,28 @@
 import threading
 import cv2
+from io import BytesIO
 
 from server.ServerRtp import ServerRtp
 from server.RtpPacket import RtpPacket
+
+BUF_SIZE = 16384
 
 class VideoServerRtp(ServerRtp):
     def __init__(self, addr, port, *args, **kwargs):
         super(VideoServerRtp, self).__init__(addr, port, *args, **kwargs)
 
-        self.currentSeq = 0
+        self.currentFrame = 0
         self.totalLength = 0
         self.cap = None
+
+        self.currentSeq = 1
 
         self.bufferSemaphore = None
         self.sendSemaphore = None
         self.encodeFrame = None
 
     def sendCondition(self):
-        return self.currentSeq < self.totalLength
+        return self.currentFrame < self.totalLength
 
     def beforeRun(self):
         self.bufferSemaphore = threading.Semaphore(value=1)
@@ -45,13 +50,22 @@ class VideoServerRtp(ServerRtp):
         while self._stop.is_set():
             self.sendSemaphore.acquire()
             data = self.encodeFrame
-            self.currentSeq += 1
+            self.currentFrame += 1
             self.bufferSemaphore.release()
 
+            byteStream = BytesIO(data)
+            totalBytes = len(data)
+            sentBytes = 0
+
             packet = RtpPacket()
-            marker = 0 if self.currentSeq < self.totalLength else 1
-            packet.encode(2, 0, 0, 0, self.currentSeq - 1, marker, 26, self.ssrc, data)
-            self.socket.sendto(packet.getPacket(), (self.clientAddr, self.clientPort))
+            while sentBytes < totalBytes:
+                sentBytes += BUF_SIZE
+                marker = 0 if sentBytes < totalBytes else 1
+                bytesToSend = byteStream.read(BUF_SIZE)
+                packet.encode(2, 0, 0, 0, self.currentSeq, marker, 26, self.ssrc, bytesToSend)
+                self.currentSeq += 1
+                self.socket.sendto(packet.getPacket(), (self.clientAddr, self.clientPort))
+            byteStream.close()
 
 
     def setCapture(self, cap):
@@ -61,6 +75,6 @@ class VideoServerRtp(ServerRtp):
         self.setInterval(1 / fs)
 
     def setPosition(self, pos):
-        self.currentSeq = pos
+        self.currentFrame = pos
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
 

@@ -40,25 +40,25 @@ class Client:
         self.setup = Button(self.master, width=20, padx=3, pady=3)
         self.setup["text"] = "Setup"
         self.setup["command"] = self.rtspController.setup
-        self.setup.grid(row=1, column=0, padx=2, pady=2)
+        self.setup.grid(row=1, column=1, padx=2, pady=2)
 
         # Create Play button
         self.start = Button(self.master, width=20, padx=3, pady=3)
         self.start["text"] = "Play"
         self.start["command"] = self.rtspController.play
-        self.start.grid(row=1, column=1, padx=2, pady=2)
+        self.start.grid(row=1, column=2, padx=2, pady=2)
 
         # Create Pause button
         self.pause = Button(self.master, width=20, padx=3, pady=3)
         self.pause["text"] = "Pause"
         self.pause["command"] = self.rtspController.pause
-        self.pause.grid(row=1, column=2, padx=2, pady=2)
+        self.pause.grid(row=1, column=3, padx=2, pady=2)
 
         # Create Teardown button
         self.teardown = Button(self.master, width=20, padx=3, pady=3)
         self.teardown["text"] = "Teardown"
         self.teardown["command"] = self.exit
-        self.teardown.grid(row=1, column=3, padx=2, pady=2)
+        self.teardown.grid(row=1, column=4, padx=2, pady=2)
 
         # Create a label to display the movie
         self.label = Label(self.master, height=19)
@@ -69,7 +69,7 @@ class Client:
         self.master.destroy()
 
     def updateVideo(self, frame):
-        self.label.configure(image=frame, height=288)
+        self.label.configure(image=frame, height=720)
         self.label.image = frame
 
     def exitHandler(self):

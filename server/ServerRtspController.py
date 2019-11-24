@@ -1,3 +1,4 @@
+import math
 import random
 import os
 import cv2
@@ -36,6 +37,8 @@ class ServerRtspController:
     def start(self):
         while self.rtspSocket is not None:
             request = self.recvRtspRequest()
+            print('\nRequest:')
+            print(request)
             self.handleRequest(request)
 
     def recvRtspRequest(self):
@@ -82,7 +85,7 @@ class ServerRtspController:
             })
             response = response + videoInfo
         # TODO audio info
-        self.rtspSocket.running(response.encode())
+        self.rtspSocket.send(response.encode())
 
     def sendSetupResponse(self, seq):
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(
@@ -90,28 +93,28 @@ class ServerRtspController:
                 'seqNum': seq,
                 'session': self.sessionid
             })
-        self.rtspSocket.running(response.encode())
+        self.rtspSocket.send(response.encode())
 
     def sendPlayResponse(self, seq):
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
         })
-        self.rtspSocket.running(response.encode())
+        self.rtspSocket.send(response.encode())
 
     def sendPauseResponse(self, seq):
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
         })
-        self.rtspSocket.running(response.encode())
+        self.rtspSocket.send(response.encode())
 
     def sendTearDownResponse(self, seq):
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
         })
-        self.rtspSocket.running(response.encode())
+        self.rtspSocket.send(response.encode())
 
     def getInfo(self, filename):
         return {
@@ -119,9 +122,10 @@ class ServerRtspController:
         }
 
     def getVideoInfo(self, filename):
+        print(os.getcwd())
         self.cap = cv2.VideoCapture(os.path.join(self.videoDir, filename))
-        framerate = self.cap.get(cv2.CAP_PROP_FPS)
-        length = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        framerate = math.floor(self.cap.get(cv2.CAP_PROP_FPS))
+        length = math.floor(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         return {
             'length': length,
             'framerate': framerate

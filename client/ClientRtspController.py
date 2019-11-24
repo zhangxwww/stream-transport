@@ -58,7 +58,8 @@ class ClientRtspController:
 
     def play(self):
         if self.state == self.READY:
-            self.videoRtp = VideoClientRtp('', self.videoRtpPort)
+            if self.videoRtp is None:
+                self.openRtpPort()
             self.videoRtp.setDisplay(self.updateVideo)
             self.videoRtp.setInterval(1 / self.videoFrameRate)
             self.videoRtp.start()
@@ -89,11 +90,11 @@ class ClientRtspController:
         # Setup request
         elif requestCode == self.SETUP and self.state == self.PREPARE:
             # Update RTSP sequence number.
-            self.rtspSocket += 1
+            self.rtspSeq += 1
 
             # Write the RTSP request to be sent.
             request = 'SETUP ' + self.filename + ' RTSP/1.0\nCSeq: ' + str(
-                self.rtspSeq) + '\nTransport: RTP/UDP; client_port= ' + str(self.rtpPort)
+                self.rtspSeq) + '\nTransport: RTP/UDP; client_port= ' + str(self.videoRtpPort)
 
             # Keep track of the sent request.
             self.requestSent = self.SETUP
@@ -139,7 +140,9 @@ class ClientRtspController:
 
             # Close the RTSP socket upon requesting Teardown
             if self.requestSent == self.TEARDOWN:
-                self.videoRtp.stop()
+                if self.videoRtp is not None:
+                    self.videoRtp.stop()
+                    self.videoRtp = None
                 self.rtspSocket.shutdown(socket.SHUT_RDWR)
                 self.rtspSocket.close()
                 break
@@ -184,7 +187,7 @@ class ClientRtspController:
         """Open RTP socket binded to a specified port."""
         try:
             self.videoRtp = VideoClientRtp('', self.videoRtpPort)
-        except IOError:
+        except OSError:
             self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' %self.videoRtpPort)
 
     def setWarningBox(self, box):
