@@ -1,12 +1,13 @@
 import socket
 import threading
 
+
 class ServerRtp(threading.Thread):
     def __init__(self, addr, port, *args, **kwargs):
         super(ServerRtp, self).__init__(*args, **kwargs)
 
         self.addr = addr
-        #self.port = port
+        # self.port = port
 
         self.socket = None
         self.initSocket()
@@ -27,7 +28,7 @@ class ServerRtp(threading.Thread):
 
     def initSocket(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #self.socket.bind((self.addr, self.port))
+        # self.socket.bind((self.addr, self.port))
 
     def closeSocket(self):
         self.socket.close()

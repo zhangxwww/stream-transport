@@ -1,5 +1,7 @@
 from time import time
+
 HEADER_SIZE = 12
+
 
 class RtpPacket:
     header = bytearray(HEADER_SIZE)
@@ -15,7 +17,7 @@ class RtpPacket:
         # Fill the header bytearray with RTP header fields
         header[0] = (version << 6) | (padding << 5) | (extension << 4) | cc
         header[1] = (marker << 7) | pt
-        header[2] = (seqnum >> 8) & 255 #upper bits
+        header[2] = (seqnum >> 8) & 255  # upper bits
         header[3] = seqnum & 255
         header[4] = timestamp >> 24 & 255
         header[5] = timestamp >> 16 & 255

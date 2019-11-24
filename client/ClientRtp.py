@@ -20,7 +20,7 @@ class ClientRtp(threading.Thread):
 
     def initSocket(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #self.socket.settimeout(0.5)
+        # self.socket.settimeout(0.5)
         self.socket.bind((self.addr, self.port))
 
     def closeSocket(self):

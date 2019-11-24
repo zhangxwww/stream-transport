@@ -7,6 +7,7 @@ from server.RtpPacket import RtpPacket
 
 BUF_SIZE = 16384
 
+
 class VideoServerRtp(ServerRtp):
     def __init__(self, addr, port, *args, **kwargs):
         super(VideoServerRtp, self).__init__(addr, port, *args, **kwargs)
@@ -68,7 +69,6 @@ class VideoServerRtp(ServerRtp):
                 self.currentSeq += 1
                 self.socket.sendto(packet.getPacket(), (self.clientAddr, self.clientPort))
             byteStream.close()
-
 
     def setCapture(self, cap):
         self.cap = cap

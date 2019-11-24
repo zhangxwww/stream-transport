@@ -3,6 +3,7 @@ import multiprocessing
 
 from server.ServerRtspController import ServerRtspController
 
+
 class Server:
     def __init__(self, addr, rtspPort, rtpPort, videoDir):
         self.addr = addr
@@ -32,6 +33,7 @@ class Server:
     def handleNewConnection(self, rtspSocket, clientAddr):
         self.listenRtspSocket.close()
         ServerRtspController(rtspSocket, self.addr, self.rtpPort, clientAddr, self.videoDir).start()
+
 
 if __name__ == '__main__':
     import argparse

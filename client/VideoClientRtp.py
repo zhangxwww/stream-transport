@@ -40,7 +40,7 @@ class VideoClientRtp(ClientRtp):
                 rtpPacket.decode(data)
                 marker = rtpPacket.marker()
                 currentSeqNbr = rtpPacket.seqNum()
-                #print('Current Seq Num: {}'.format(currentSeqNbr))
+                # print('Current Seq Num: {}'.format(currentSeqNbr))
 
                 if currentSeqNbr > self.seqNum:
                     # TODO assume in order

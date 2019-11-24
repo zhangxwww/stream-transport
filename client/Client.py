@@ -3,6 +3,7 @@ import tkinter.messagebox
 
 from client.ClientRtspController import ClientRtspController
 
+
 class Client:
     def __init__(self, serveraddr, serverport, rtpport, filename):
         self.rtspController = None
@@ -77,8 +78,9 @@ class Client:
         if tkinter.messagebox.askokcancel("Quit?", "Are you sure you want to quit?"):
             self.rtspController.teardown()
             self.master.destroy()
-        else: # When the user presses cancel, resume playing.
+        else:  # When the user presses cancel, resume playing.
             self.rtspController.play()
+
 
 if __name__ == '__main__':
     import argparse

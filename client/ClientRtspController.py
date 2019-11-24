@@ -3,6 +3,7 @@ import threading
 
 from client.VideoClientRtp import VideoClientRtp
 
+
 class ClientRtspController:
     INIT = 0
     PREPARE = 1
@@ -46,7 +47,7 @@ class ClientRtspController:
             self.rtspSocket.connect((self.serverAddr, self.serverPort))
             print('connected')
         except IOError:
-            self.warningBox.showwarning('Connection Failed', 'Connection to \'%s\' failed.' %self.serverAddr)
+            self.warningBox.showwarning('Connection Failed', 'Connection to \'%s\' failed.' % self.serverAddr)
 
     def describe(self):
         if self.state == self.INIT:
@@ -82,7 +83,7 @@ class ClientRtspController:
             self.rtspSeq += 1
 
             # Write the RTSP request to be sent.
-            request = 'DESCRIBE ' + self.filename + ' RTSP/1.0\nCSeq: ' + str( self.rtspSeq)
+            request = 'DESCRIBE ' + self.filename + ' RTSP/1.0\nCSeq: ' + str(self.rtspSeq)
 
             # Keep track of the sent request.
             self.requestSent = self.DESCRIBE
@@ -188,7 +189,7 @@ class ClientRtspController:
         try:
             self.videoRtp = VideoClientRtp('', self.videoRtpPort)
         except OSError:
-            self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' %self.videoRtpPort)
+            self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.videoRtpPort)
 
     def setWarningBox(self, box):
         self.warningBox = box
