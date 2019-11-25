@@ -75,7 +75,7 @@ class VideoServerRtp(ServerRtp):
         self.cap = cap
         self.totalLength = cap.get(cv2.CAP_PROP_FRAME_COUNT)
         fs = cap.get(cv2.CAP_PROP_FPS)
-        self.setInterval(1 / fs )
+        self.setInterval(1 / fs / 1.5)
 
     def setPosition(self, pos):
         # pos: .%

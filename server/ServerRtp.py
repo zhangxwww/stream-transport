@@ -35,7 +35,7 @@ class ServerRtp(threading.Thread):
         self.socket = None
 
     def setInterval(self, interval):
-        self.interval = interval / 1.5
+        self.interval = interval
 
     def setClientInfo(self, addr, port):
         self.clientAddr = addr

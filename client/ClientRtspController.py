@@ -2,6 +2,7 @@ import socket
 import threading
 
 from client.VideoClientRtp import VideoClientRtp
+from client.AudioClientRtp import AudioClientRtp
 
 
 class ClientRtspController:
@@ -22,6 +23,7 @@ class ClientRtspController:
         self.serverPort = serverport
 
         self.videoRtpPort = rtpport
+        self.audioRtpPort = rtpport + 2
 
         self.updateVideo = updateVideoCallback
 
@@ -35,6 +37,9 @@ class ClientRtspController:
         self.videoRtp = None
         self.videoLength = 0
         self.videoFrameRate = 0
+
+        self.audioRtp = None
+        self.audioFrameRate = 0
 
         self.filename = filename
 
@@ -59,11 +64,15 @@ class ClientRtspController:
 
     def play(self):
         if self.state == self.READY:
-            if self.videoRtp is None:
-                self.openRtpPort()
+            self.openRtpPort()
+
             self.videoRtp.setDisplay(self.updateVideo)
             self.videoRtp.setInterval(1 / self.videoFrameRate)
             self.videoRtp.start()
+
+            self.audioRtp.setFrameRate(self.audioFrameRate)
+            self.audioRtp.start()
+
             self.sendRtspRequest(self.PLAY)
 
     def pause(self):
@@ -141,9 +150,7 @@ class ClientRtspController:
 
             # Close the RTSP socket upon requesting Teardown
             if self.requestSent == self.TEARDOWN:
-                if self.videoRtp is not None:
-                    self.videoRtp.stop()
-                    self.videoRtp = None
+                self.stopRtp()
                 self.rtspSocket.shutdown(socket.SHUT_RDWR)
                 self.rtspSocket.close()
                 break
@@ -168,7 +175,7 @@ class ClientRtspController:
                         infolines = lines[3:]
                         self.videoLength = int(infolines[2].split(':')[-1])
                         self.videoFrameRate = int(infolines[3].split(':')[-1])
-                        # TODO parse audio info
+                        self.audioFrameRate = int(infolines[6].split(':')[-1])
                     elif self.requestSent == self.SETUP:
                         # Update RTSP state.
                         self.state = self.READY
@@ -178,18 +185,31 @@ class ClientRtspController:
                         self.state = self.PLAYING
                     elif self.requestSent == self.PAUSE:
                         self.state = self.READY
-                        self.videoRtp.stop()
-                        self.videoRtp = None
+                        self.stopRtp()
                     elif self.requestSent == self.TEARDOWN:
                         self.state = self.INIT
                         self.teardownAcked = True
 
     def openRtpPort(self):
         """Open RTP socket binded to a specified port."""
-        try:
-            self.videoRtp = VideoClientRtp('', self.videoRtpPort)
-        except OSError:
-            self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.videoRtpPort)
+        if self.videoRtp is None:
+            try:
+                self.videoRtp = VideoClientRtp('', self.videoRtpPort)
+            except OSError:
+                self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.videoRtpPort)
+        if self.audioRtp is None:
+            try:
+                self.audioRtp = AudioClientRtp('', self.audioRtpPort)
+            except OSError:
+                self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.audioRtpPort)
+
+    def stopRtp(self):
+        if self.videoRtp is not None:
+            self.videoRtp.stop()
+            self.videoRtp = None
+        if self.audioRtp is not None:
+            self.audioRtp.stop()
+            self.audioRtp = None
 
     def setWarningBox(self, box):
         self.warningBox = box

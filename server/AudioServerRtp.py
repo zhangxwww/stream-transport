@@ -15,6 +15,7 @@ class AudioServerRtp(ServerRtp):
 
         self.chunkSize = 0
         self.fs = 0
+        self.chunkLength = 0
 
         self.currentChunk = 0
         self.totalChunks = 0
@@ -68,11 +69,12 @@ class AudioServerRtp(ServerRtp):
 
     def setAudio(self, audio, audioLength):
         # audioLength: seconds
-        self.setInterval(0.04)
+        self.setInterval(0.04 / 1.5)
+        self.chunkLength = 0.04
         self.audio = audio
         self.fs = audio.fps
-        self.chunkSize = int(self.fs * self.interval)
-        self.totalChunks = int(audioLength / self.interval)
+        self.chunkSize = int(self.fs * self.chunkLength)
+        self.totalChunks = int(audioLength / self.chunkLength)
 
     def getCurrentChunkContent(self):
         chunk = np.zeros((self.chunkSize, 2), dtype=np.float32)

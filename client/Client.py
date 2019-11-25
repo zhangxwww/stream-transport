@@ -68,7 +68,8 @@ class Client:
 
     def exit(self):
         self.rtspController.teardown()
-        time.sleep(0.5)
+        #time.sleep(0.5)
+        # TODO teardown callback and destroy
         self.master.destroy()
 
     def updateVideo(self, frame):

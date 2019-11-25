@@ -36,11 +36,15 @@ class ClientRtp(threading.Thread):
             self.running()
             self._display_interval.wait(self.interval)
         self.closeSocket()
+        self.afterRun()
 
     def stop(self):
         self._stop.clear()
 
     def beforeRun(self):
+        raise NotImplementedError
+
+    def afterRun(self):
         raise NotImplementedError
 
     def running(self):

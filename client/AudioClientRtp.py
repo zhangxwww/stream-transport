@@ -1,33 +1,39 @@
 import threading
-from PIL import Image, ImageTk
+import sounddevice as sd
 from io import BytesIO
+import numpy as np
 
-from client.ClientRtp import ClientRtp
 from client.RtpPacket import RtpPacket
+from client.ClientRtp import ClientRtp
 
 BUF_SIZE = 20480
 
 
-class VideoClientRtp(ClientRtp):
+class AudioClientRtp(ClientRtp):
     def __init__(self, addr, port, *args, **kwargs):
-        super(VideoClientRtp, self).__init__(addr, port, *args, **kwargs)
+        super(AudioClientRtp, self).__init__(addr, port, *args, **kwargs)
 
         self.seqNum = 0
 
         self.bufferSemaphore = None
         self.displaySemaphore = None
 
-        self.decodeFrame = None
+        self.fs = None
 
-        self.displayCallback = None
+        self.decodeChunk = None
+
+        self.out = None
 
     def beforeRun(self):
+        self.out = sd.OutputStream()
+        self.out.start()
+        self.setInterval(0)
         self.bufferSemaphore = threading.Semaphore(value=1)
         self.displaySemaphore = threading.Semaphore(value=0)
         threading.Thread(target=self.recvRtp).start()
 
     def afterRun(self):
-        pass
+        self.out.close()
 
     def running(self):
         self.display()
@@ -44,10 +50,9 @@ class VideoClientRtp(ClientRtp):
                     rtpPacket.decode(data)
                     marker = rtpPacket.marker()
                     currentSeqNbr = rtpPacket.seqNum()
-                    # print('Current Seq Num: {}'.format(currentSeqNbr))
 
                     if currentSeqNbr > self.seqNum:
-                        # TODO assume in order
+                        # TODO check it later
                         self.seqNum = currentSeqNbr
                         byte = rtpPacket.getPayload()
                         byteStream.write(byte)
@@ -55,33 +60,28 @@ class VideoClientRtp(ClientRtp):
                         break
                 except IOError:
                     continue
-            frame = self.decode(byteStream)
+            chunk = self.decode(byteStream)
             byteStream.close()
             self.bufferSemaphore.acquire()
-            self.decodeFrame = frame
+            self.decodeChunk = chunk
             self.displaySemaphore.release()
+
+    def display(self):
+        self.displaySemaphore.acquire()
+        chunk = self.decodeChunk
+        self.bufferSemaphore.release()
+        if chunk is None:
+            self._display_interval.wait(self.interval)
+        else:
+            self.out.write(chunk)
 
     @staticmethod
     def decode(byteStream):
         try:
-            frame = Image.open(byteStream)
+            chunk = np.frombuffer(byteStream.getvalue(), dtype=np.float32).reshape(-1, 2)
+        except ValueError:
+            chunk = None
+        return chunk
 
-            # TODO
-            # frame = frame.resize((640, 360))
-
-            frame = ImageTk.PhotoImage(frame)
-        except OSError:
-            frame = None
-        return frame
-
-    def setDisplay(self, displayCallback):
-        self.displayCallback = displayCallback
-
-    def display(self):
-        self.displaySemaphore.acquire()
-        frame = self.decodeFrame
-        self.bufferSemaphore.release()
-        if frame is None:
-            self._display_interval.wait(self.interval)
-        else:
-            self.displayCallback(frame)
+    def setFrameRate(self, fs):
+        self.fs = fs
