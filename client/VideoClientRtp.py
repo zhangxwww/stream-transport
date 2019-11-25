@@ -24,38 +24,39 @@ class VideoClientRtp(ClientRtp):
     def beforeRun(self):
         self.bufferSemaphore = threading.Semaphore(value=1)
         self.displaySemaphore = threading.Semaphore(value=0)
-        threading.Thread(target=self.display).start()
+        threading.Thread(target=self.recvRtp).start()
 
     def running(self):
-        self.recvRtp()
+        self.display()
 
     def recvRtp(self):
-        rtpPacket = RtpPacket()
-        byteStream = BytesIO(b'')
-        while True:
-            try:
-                data = self.socket.recv(BUF_SIZE)
-                if not data:
-                    break
-                rtpPacket.decode(data)
-                marker = rtpPacket.marker()
-                currentSeqNbr = rtpPacket.seqNum()
-                # print('Current Seq Num: {}'.format(currentSeqNbr))
+        while self._stop.is_set():
+            rtpPacket = RtpPacket()
+            byteStream = BytesIO(b'')
+            while True:
+                try:
+                    data = self.socket.recv(BUF_SIZE)
+                    if not data:
+                        break
+                    rtpPacket.decode(data)
+                    marker = rtpPacket.marker()
+                    currentSeqNbr = rtpPacket.seqNum()
+                    # print('Current Seq Num: {}'.format(currentSeqNbr))
 
-                if currentSeqNbr > self.seqNum:
-                    # TODO assume in order
-                    self.seqNum = currentSeqNbr
-                    byte = rtpPacket.getPayload()
-                    byteStream.write(byte)
-                if marker == 1:
-                    break
-            except IOError:
-                continue
-        frame = self.decode(byteStream)
-        byteStream.close()
-        self.bufferSemaphore.acquire()
-        self.decodeFrame = frame
-        self.displaySemaphore.release()
+                    if currentSeqNbr > self.seqNum:
+                        # TODO assume in order
+                        self.seqNum = currentSeqNbr
+                        byte = rtpPacket.getPayload()
+                        byteStream.write(byte)
+                    if marker == 1:
+                        break
+                except IOError:
+                    continue
+            frame = self.decode(byteStream)
+            byteStream.close()
+            self.bufferSemaphore.acquire()
+            self.decodeFrame = frame
+            self.displaySemaphore.release()
 
     @staticmethod
     def decode(byteStream):
@@ -76,11 +77,10 @@ class VideoClientRtp(ClientRtp):
         self.displayCallback = displayCallback
 
     def display(self):
-        while self._stop.is_set():
-            self.displaySemaphore.acquire()
-            frame = self.decodeFrame
-            self.bufferSemaphore.release()
-            if frame is None:
-                self._display_interval.wait(self.interval)
-            else:
-                self.displayCallback(frame)
+        self.displaySemaphore.acquire()
+        frame = self.decodeFrame
+        self.bufferSemaphore.release()
+        if frame is None:
+            self._display_interval.wait(self.interval)
+        else:
+            self.displayCallback(frame)

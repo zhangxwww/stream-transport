@@ -3,8 +3,10 @@ import random
 import os
 import cv2
 import socket
+from moviepy.editor import AudioFileClip
 
 from server.VideoServerRtp import VideoServerRtp
+from server.AudioServerRtp import AudioServerRtp
 
 
 class ServerRtspController:
@@ -16,18 +18,21 @@ class ServerRtspController:
         self.clientAddr = clientAddr[0]
         self.clientRtspPort = clientAddr[1]
 
-        self.clientRtpPort = 0
+        self.clientVideoRtpPort = 0
 
         self.filename = ''
+        self.info = None
 
         self.ssrc = 0
         self.sessionid = 0
 
         self.cap = None
+        self.audioClip = None
 
         self.videoDir = videoDir
 
         self.videoRtp = None
+        self.audioRtp = None
 
         self.init()
 
@@ -55,7 +60,7 @@ class ServerRtspController:
             info = self.getInfo(filename)
             self.sendDescribeResponse(seq, info)
         elif command == 'SETUP':
-            self.clientRtpPort = int(lines[2].split('=')[-1])
+            self.clientVideoRtpPort = int(lines[2].split('=')[-1])
             self.setup()
             self.sendSetupResponse(seq)
         elif command == 'PLAY':
@@ -85,7 +90,11 @@ class ServerRtspController:
                 'fs': info['video']['framerate']
             })
             response = response + videoInfo
-        # TODO audio info
+        if 'audio' in info.keys():
+            audioInfo = '\nm=audio 0\na=control:streamid=1\na=framerate:{fs}'.format(**{
+                'fs': info['audio']['framerate']
+            })
+            response = response + audioInfo
         self.rtspSocket.send(response.encode())
 
     def sendSetupResponse(self, seq):
@@ -118,44 +127,62 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def getInfo(self, filename):
-        return {
-            'video': self.getVideoInfo(filename)
+        self.info = {
+            'video': self.getVideoInfo(filename),
+            'audio': self.getAudioInfo(filename)
         }
+        return self.info
 
     def getVideoInfo(self, filename):
-        print(os.getcwd())
         self.cap = cv2.VideoCapture(os.path.join(self.videoDir, filename))
         framerate = math.floor(self.cap.get(cv2.CAP_PROP_FPS))
         length = math.floor(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         return {
-            'length': length,
+            'length': length, # n frames
             'framerate': framerate
         }
 
     def getAudioInfo(self, filename):
-        pass
+        self.audioClip = AudioFileClip(os.path.join(self.videoDir, filename))
+        framerate = math.floor(self.audioClip.fps)
+        return {
+            'framerate': framerate
+        }
 
     def setup(self):
         self.videoRtp = VideoServerRtp(self.addr, self.rtpPort)
-        self.videoRtp.setClientInfo(self.clientAddr, self.clientRtpPort)
+        self.videoRtp.setClientInfo(self.clientAddr, self.clientVideoRtpPort)
         self.videoRtp.setSsrc(self.ssrc)
         self.videoRtp.setCapture(self.cap)
 
+        self.audioRtp = AudioServerRtp(self.addr, self.rtpPort + 2)
+        self.audioRtp.setClientInfo(self.clientAddr, self.clientVideoRtpPort + 2)
+        self.audioRtp.setSsrc(self.ssrc)
+        self.audioRtp.setAudio(self.audioClip, self.info['video']['length'] / self.info['video']['framerate'])
+
     def play(self, pos):
         if pos is not None:
+            # pos: .%
             self.videoRtp.pause()
             self.videoRtp.setPosition(pos)
             self.videoRtp.resume()
+            self.audioRtp.pause()
+            self.audioRtp.setPosition(pos)
+            self.audioRtp.resume()
         elif self.videoRtp.is_start:
             self.videoRtp.resume()
+            self.audioRtp.resume()
         else:
             self.videoRtp.start()
+            self.audioRtp.start()
 
     def pause(self):
         self.videoRtp.pause()
+        self.audioRtp.pause()
 
     def teardown(self):
         self.videoRtp.stop()
+        self.audioRtp.stop()
         if self.rtspSocket is not None:
             self.rtspSocket.shutdown(socket.SHUT_RDWR)
             self.rtspSocket.close()

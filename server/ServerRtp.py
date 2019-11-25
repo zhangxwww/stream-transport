@@ -7,7 +7,8 @@ class ServerRtp(threading.Thread):
         super(ServerRtp, self).__init__(*args, **kwargs)
 
         self.addr = addr
-        # self.port = port
+        # TODO check it later
+        self.port = port
 
         self.socket = None
         self.initSocket()
@@ -28,14 +29,13 @@ class ServerRtp(threading.Thread):
 
     def initSocket(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # self.socket.bind((self.addr, self.port))
 
     def closeSocket(self):
         self.socket.close()
         self.socket = None
 
     def setInterval(self, interval):
-        self.interval = interval
+        self.interval = interval / 1.5
 
     def setClientInfo(self, addr, port):
         self.clientAddr = addr

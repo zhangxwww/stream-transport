@@ -28,7 +28,7 @@ class ClientRtp(threading.Thread):
         self.socket = None
 
     def setInterval(self, interval):
-        self.interval = interval
+        self.interval = interval / 1.5
 
     def run(self):
         self.beforeRun()

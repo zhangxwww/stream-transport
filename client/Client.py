@@ -1,3 +1,4 @@
+import time
 from tkinter import *
 import tkinter.messagebox
 
@@ -67,6 +68,7 @@ class Client:
 
     def exit(self):
         self.rtspController.teardown()
+        time.sleep(0.5)
         self.master.destroy()
 
     def updateVideo(self, frame):
