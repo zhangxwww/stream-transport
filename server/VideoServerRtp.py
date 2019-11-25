@@ -34,7 +34,7 @@ class VideoServerRtp(ServerRtp):
         self.sendData()
 
     def encode(self):
-        while self._stop.is_set():
+        while self._stopper.is_set():
             if self.cap is None:
                 return
             res, frame = self.cap.read()

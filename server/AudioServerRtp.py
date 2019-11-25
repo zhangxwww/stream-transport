@@ -39,7 +39,7 @@ class AudioServerRtp(ServerRtp):
         self.sendData()
 
     def encode(self):
-        while self.sendCondition() and self._stop.is_set():
+        while self.sendCondition() and self._stopper.is_set():
             chunk = self.getCurrentChunkContent().tobytes()
             self.currentChunk += 1
             self.bufferSemaphore.acquire()

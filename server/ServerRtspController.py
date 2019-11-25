@@ -181,8 +181,12 @@ class ServerRtspController:
         self.audioRtp.pause()
 
     def teardown(self):
-        self.videoRtp.stop()
-        self.audioRtp.stop()
+        if self.videoRtp is not None:
+            self.videoRtp.stop()
+            self.videoRtp = None
+        if self.audioRtp is not None:
+            self.audioRtp.stop()
+            self.audioRtp = None
         if self.rtspSocket is not None:
             self.rtspSocket.shutdown(socket.SHUT_RDWR)
             self.rtspSocket.close()

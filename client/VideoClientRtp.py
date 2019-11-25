@@ -24,7 +24,7 @@ class VideoClientRtp(ClientRtp):
     def beforeRun(self):
         self.bufferSemaphore = threading.Semaphore(value=1)
         self.displaySemaphore = threading.Semaphore(value=0)
-        threading.Thread(target=self.recvRtp).start()
+        threading.Thread(target=self.recvRtp, daemon=True).start()
 
     def afterRun(self):
         pass
@@ -33,7 +33,7 @@ class VideoClientRtp(ClientRtp):
         self.display()
 
     def recvRtp(self):
-        while self._stop.is_set():
+        while self._stopper.is_set():
             rtpPacket = RtpPacket()
             byteStream = BytesIO(b'')
             while True:

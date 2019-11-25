@@ -68,8 +68,6 @@ class Client:
 
     def exit(self):
         self.rtspController.teardown()
-        #time.sleep(0.5)
-        # TODO teardown callback and destroy
         self.master.destroy()
 
     def updateVideo(self, frame):
@@ -79,8 +77,7 @@ class Client:
     def exitHandler(self):
         self.rtspController.pause()
         if tkinter.messagebox.askokcancel("Quit?", "Are you sure you want to quit?"):
-            self.rtspController.teardown()
-            self.master.destroy()
+            self.exit()
         else:  # When the user presses cancel, resume playing.
             self.rtspController.play()
 

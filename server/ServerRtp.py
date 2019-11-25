@@ -15,8 +15,8 @@ class ServerRtp(threading.Thread):
 
         self._pause = threading.Event()
         self._pause.set()
-        self._stop = threading.Event()
-        self._stop.set()
+        self._stopper = threading.Event()
+        self._stopper.set()
         self._send_interval = threading.Event()
 
         self.interval = 0.04
@@ -47,7 +47,7 @@ class ServerRtp(threading.Thread):
     def run(self):
         self.is_start = True
         self.beforeRun()
-        while self.sendCondition() and self._stop.is_set():
+        while self.sendCondition() and self._stopper.is_set():
             self._pause.wait()
             self.running()
             self._send_interval.wait(self.interval)
@@ -61,7 +61,7 @@ class ServerRtp(threading.Thread):
 
     def stop(self):
         self._pause.set()
-        self._stop.clear()
+        self._stopper.clear()
 
     def sendCondition(self):
         raise NotImplementedError

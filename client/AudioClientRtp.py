@@ -30,7 +30,7 @@ class AudioClientRtp(ClientRtp):
         self.setInterval(0)
         self.bufferSemaphore = threading.Semaphore(value=1)
         self.displaySemaphore = threading.Semaphore(value=0)
-        threading.Thread(target=self.recvRtp).start()
+        threading.Thread(target=self.recvRtp, daemon=True).start()
 
     def afterRun(self):
         self.out.close()
@@ -39,7 +39,7 @@ class AudioClientRtp(ClientRtp):
         self.display()
 
     def recvRtp(self):
-        while self._stop.is_set():
+        while self._stopper.is_set():
             rtpPacket = RtpPacket()
             byteStream = BytesIO(b'')
             while True:

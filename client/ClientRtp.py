@@ -12,8 +12,8 @@ class ClientRtp(threading.Thread):
         self.socket = None
         self.initSocket()
 
-        self._stop = threading.Event()
-        self._stop.set()
+        self._stopper = threading.Event()
+        self._stopper.set()
         self._display_interval = threading.Event()
 
         self.interval = 0.04
@@ -32,14 +32,14 @@ class ClientRtp(threading.Thread):
 
     def run(self):
         self.beforeRun()
-        while self._stop.is_set():
+        while self._stopper.is_set():
             self.running()
             self._display_interval.wait(self.interval)
         self.closeSocket()
         self.afterRun()
 
     def stop(self):
-        self._stop.clear()
+        self._stopper.clear()
 
     def beforeRun(self):
         raise NotImplementedError

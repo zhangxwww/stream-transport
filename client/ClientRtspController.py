@@ -68,9 +68,11 @@ class ClientRtspController:
 
             self.videoRtp.setDisplay(self.updateVideo)
             self.videoRtp.setInterval(1 / self.videoFrameRate)
+            self.videoRtp.setDaemon(True)
             self.videoRtp.start()
 
             self.audioRtp.setFrameRate(self.audioFrameRate)
+            self.audioRtp.setDaemon(True)
             self.audioRtp.start()
 
             self.sendRtspRequest(self.PLAY)
@@ -87,7 +89,7 @@ class ClientRtspController:
 
         # Describe request
         if requestCode == self.DESCRIBE and self.state == self.INIT:
-            threading.Thread(target=self.recvRtspReply).start()
+            threading.Thread(target=self.recvRtspReply, daemon=True).start()
             # Update RTSP sequence number.
             self.rtspSeq += 1
 
