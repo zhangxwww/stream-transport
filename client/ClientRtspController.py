@@ -45,6 +45,7 @@ class ClientRtspController:
         self.filename = filename
 
         self.warningBox = None
+        self.recvCallback = None
 
     def connectToServer(self):
         """Connect to the Server. Start a new RTSP/TCP session."""
@@ -54,6 +55,9 @@ class ClientRtspController:
             print('connected')
         except IOError:
             self.warningBox.showwarning('Connection Failed', 'Connection to \'%s\' failed.' % self.serverAddr)
+
+    def setRecvCallback(self, callback):
+        self.recvCallback = callback
 
     def describe(self):
         if self.state == self.INIT:
@@ -154,7 +158,7 @@ class ClientRtspController:
 
             if reply:
                 self.parseRtspReply(reply.decode("utf-8"))
-
+                self.recvCallback()
             # Close the RTSP socket upon requesting Teardown
             if self.requestSent == self.TEARDOWN:
                 self.stopRtp()
@@ -221,3 +225,15 @@ class ClientRtspController:
 
     def setWarningBox(self, box):
         self.warningBox = box
+
+    def getCurrentPosition(self):
+        return self.videoRtp.getPostion() / self.videoLength
+
+    def getCurrentTime(self):
+        return int(self.videoRtp.getPosition() / self.videoFrameRate)
+
+    def getTotalTime(self):
+        return int(self.videoLength / self.videoFrameRate)
+
+
+

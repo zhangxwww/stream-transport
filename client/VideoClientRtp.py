@@ -17,6 +17,8 @@ class VideoClientRtp(ClientRtp):
         self.bufferSemaphore = None
         self.displaySemaphore = None
 
+        self.lastFrameNbr = 0
+
         self.decodeFrame = None
 
         self.displayCallback = None
@@ -49,6 +51,7 @@ class VideoClientRtp(ClientRtp):
                     if currentSeqNbr > self.seqNum:
                         # TODO assume in order
                         self.seqNum = currentSeqNbr
+                        self.lastFrameNbr = rtpPacket.timestamp()
                         byte = rtpPacket.getPayload()
                         byteStream.write(byte)
                     if marker == 1:
@@ -87,3 +90,7 @@ class VideoClientRtp(ClientRtp):
             self._display_interval.wait(self.interval)
         else:
             self.displayCallback(frame)
+
+    def getPosition(self):
+        # frame number
+        return self.lastFrameNbr

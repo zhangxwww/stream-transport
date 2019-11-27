@@ -68,6 +68,7 @@ class VideoServerRtp(ServerRtp):
             marker = 0 if sentBytes < totalBytes else 1
             bytesToSend = byteStream.read(BUF_SIZE)
             packet.encode(2, 0, 0, 0, self.currentSeq, marker, 26, self.ssrc, bytesToSend)
+            packet.setTimestamp(self.currentFrame)
             self.currentSeq += 1
             self.socket.sendto(packet.getPacket(), (self.clientAddr, self.clientPort))
         byteStream.close()
