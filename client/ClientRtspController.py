@@ -22,8 +22,9 @@ class ClientRtspController:
         self.serverAddr = serveraddr
         self.serverPort = serverport
 
-        self.videoRtpPort = rtpport
-        self.audioRtpPort = rtpport + 2
+
+        self.videoRtpPort = 0
+        self.audioRtpPort = 0
 
         self.updateVideo = updateVideoCallback
 
@@ -62,7 +63,7 @@ class ClientRtspController:
         if self.state == self.PREPARE:
             self.sendRtspRequest(self.SETUP)
 
-    def play(self):
+    def play(self, pos=None):
         if self.state == self.READY:
             self.openRtpPort()
 
@@ -74,8 +75,10 @@ class ClientRtspController:
             self.audioRtp.setFrameRate(self.audioFrameRate)
             self.audioRtp.setDaemon(True)
             self.audioRtp.start()
-
-            self.sendRtspRequest(self.PLAY)
+            if pos is None:
+                self.sendRtspRequest(self.PLAY)
+            else:
+                self.sendRtspRequest(self.PLAY, pos=pos)
 
     def pause(self):
         if self.state == self.PLAYING:
@@ -84,7 +87,7 @@ class ClientRtspController:
     def teardown(self):
         self.sendRtspRequest(self.TEARDOWN)
 
-    def sendRtspRequest(self, requestCode):
+    def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
 
         # Describe request
@@ -104,6 +107,7 @@ class ClientRtspController:
             # Update RTSP sequence number.
             self.rtspSeq += 1
 
+            self.openRtpPort()
             # Write the RTSP request to be sent.
             request = 'SETUP ' + self.filename + ' RTSP/1.0\nCSeq: ' + str(
                 self.rtspSeq) + '\nTransport: RTP/UDP; client_port= ' + str(self.videoRtpPort)
@@ -111,12 +115,13 @@ class ClientRtspController:
             # Keep track of the sent request.
             self.requestSent = self.SETUP
 
-
         # Play request
         elif requestCode == self.PLAY and self.state == self.READY:
             self.rtspSeq += 1
             request = 'PLAY ' + self.filename + ' RTSP/1.0\nCSeq: ' + str(self.rtspSeq) + '\nSession: ' + str(
                 self.sessionid)
+            if 'pos' in kwargs.keys():
+                request = request + '\nRange: npt={}'.format(kwargs['pos'])
             self.requestSent = self.PLAY
 
         # Pause request
@@ -182,7 +187,6 @@ class ClientRtspController:
                         # Update RTSP state.
                         self.state = self.READY
                         # Open RTP port.
-                        self.openRtpPort()
                     elif self.requestSent == self.PLAY:
                         self.state = self.PLAYING
                     elif self.requestSent == self.PAUSE:
@@ -196,12 +200,14 @@ class ClientRtspController:
         """Open RTP socket binded to a specified port."""
         if self.videoRtp is None:
             try:
-                self.videoRtp = VideoClientRtp('', self.videoRtpPort)
+                self.videoRtp = VideoClientRtp('')
+                self.videoRtpPort = self.videoRtp.getPort()
             except OSError:
                 self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.videoRtpPort)
         if self.audioRtp is None:
             try:
-                self.audioRtp = AudioClientRtp('', self.audioRtpPort)
+                self.audioRtp = AudioClientRtp('')
+                self.audioRtpPort = self.audioRtp.getPort()
             except OSError:
                 self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.audioRtpPort)
 

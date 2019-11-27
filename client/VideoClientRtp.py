@@ -9,8 +9,8 @@ BUF_SIZE = 20480
 
 
 class VideoClientRtp(ClientRtp):
-    def __init__(self, addr, port, *args, **kwargs):
-        super(VideoClientRtp, self).__init__(addr, port, *args, **kwargs)
+    def __init__(self, addr, *args, **kwargs):
+        super(VideoClientRtp, self).__init__(addr, *args, **kwargs)
 
         self.seqNum = 0
 
@@ -55,6 +55,8 @@ class VideoClientRtp(ClientRtp):
                         break
                 except IOError:
                     continue
+                except AttributeError:
+                    break
             frame = self.decode(byteStream)
             byteStream.close()
             self.bufferSemaphore.acquire()

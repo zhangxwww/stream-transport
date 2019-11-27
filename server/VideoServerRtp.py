@@ -37,6 +37,7 @@ class VideoServerRtp(ServerRtp):
         while self._stopper.is_set():
             if self.cap is None:
                 return
+            #print(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
             res, frame = self.cap.read()
             frame = cv2.resize(frame, (480, 270))
             if not res:
@@ -73,11 +74,11 @@ class VideoServerRtp(ServerRtp):
 
     def setCapture(self, cap):
         self.cap = cap
-        self.totalLength = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        self.totalLength = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fs = cap.get(cv2.CAP_PROP_FPS)
         self.setInterval(1 / fs / 1.5)
 
     def setPosition(self, pos):
         # pos: .%
         self.currentFrame = int(self.totalLength * pos / 1000)
-        self.cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.currentFrame)

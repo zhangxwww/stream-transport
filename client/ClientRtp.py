@@ -3,11 +3,11 @@ import threading
 
 
 class ClientRtp(threading.Thread):
-    def __init__(self, addr, port, *args, **kwargs):
+    def __init__(self, addr, *args, **kwargs):
         super(ClientRtp, self).__init__(*args, **kwargs)
 
         self.addr = addr
-        self.port = port
+        # self.port = port
 
         self.socket = None
         self.initSocket()
@@ -21,7 +21,14 @@ class ClientRtp(threading.Thread):
     def initSocket(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # self.socket.settimeout(0.5)
-        self.socket.bind((self.addr, self.port))
+        # self.socket.bind((self.addr, self.port))
+        port = 44444
+        while True:
+            try:
+                self.socket.bind((self.addr, port))
+                break
+            except OSError:
+                port += 2
 
     def closeSocket(self):
         self.socket.close()
@@ -29,6 +36,9 @@ class ClientRtp(threading.Thread):
 
     def setInterval(self, interval):
         self.interval = interval / 1.5
+
+    def getPort(self):
+        return self.socket.getsockname()[1]
 
     def run(self):
         self.beforeRun()

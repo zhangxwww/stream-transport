@@ -106,12 +106,12 @@ class Client:
         else:  # When the user presses cancel, resume playing.
             self.rtspController.play()
 
-    def clickScaleHandler(self, event):
-        print('click')
+    def clickScaleHandler(self, _):
+        self.rtspController.pause()
 
-    def releaseScaleHandler(self, event):
-        print('release')
-        print(self.scale.get())
+    def releaseScaleHandler(self, _):
+        pos = self.scale.get()
+        self.rtspController.play(pos)
 
 
 if __name__ == '__main__':
