@@ -43,6 +43,7 @@ class Client:
         self.rtspController.setRecvCallback(self.rtspRecvCallback)
         threading.Thread(target=self.updateTimeLabelThread, daemon=True).start()
         self.fileExplorer = FileExplorer(serveraddr, 20000, self.updateFileListBoxCallback)
+        self.enterEntryHandler(None)
 
     def createWidgets(self):
         """Build GUI."""
@@ -137,7 +138,6 @@ class Client:
         self.searchVar = tkinter.StringVar()
         self.searchEntry = tkinter.Entry(rightFrame, textvariable=self.searchVar)
         self.searchEntry.grid(row=0, column=0, padx=2, pady=2)
-        self.searchVar.set('File name/category')
         self.searchEntry.bind('<Key-KP_Enter>', self.enterEntryHandler)
         self.searchEntry.bind('<Key-Return>', self.enterEntryHandler)
 
@@ -150,11 +150,6 @@ class Client:
         fileListScroll.pack(side='right', fill='y')
         self.fileListBox.pack(side='left', fill='both')
         self.fileListBox.bind('<Double-Button-1>', self.doubleClickFileListBoxHandler)
-
-        self.fileListBox.insert(0, 'first')
-        self.fileListBox.insert(1, 'second')
-        self.fileListBox.insert(2, 'third')
-
 
     def exit(self):
         self.rtspController.teardown()

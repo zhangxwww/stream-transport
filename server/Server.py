@@ -2,6 +2,7 @@ import socket
 import multiprocessing
 
 from server.ServerRtspController import ServerRtspController
+from server.SearchEngine import SearchEngine
 
 
 class Server:
@@ -13,13 +14,19 @@ class Server:
         self.videoDir = videoDir
 
         self.listenRtspSocket = None
+        self.search = None
 
+        self.initSearchEngine()
         self.initConnection()
         self.startServer()
 
     def initConnection(self):
         self.listenRtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.listenRtspSocket.bind((self.addr, self.rtspPort))
+
+    def initSearchEngine(self):
+        self.search = SearchEngine(self.addr, 20000, self.videoDir)
+        multiprocessing.Process(target=self.search.startServer).start()
 
     def startServer(self):
         self.listenRtspSocket.listen(10)

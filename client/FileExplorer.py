@@ -22,15 +22,18 @@ class FileExplorer:
             self.socket = None
 
     def search(self, info=''):
-        request = 'SEARCH {}'.format(info)
-        self.socket.send(request.encode())
-        response = self.socket.recv(2048).decode()
-        lines = self.parseResponse(response)
-        self.updateCallback(lines)
+        try:
+            request = 'SEARCH {}'.format(info)
+            print(request)
+            self.socket.send(request.encode())
+            response = self.socket.recv(2048).decode()
+            print(response)
+            lines = self.parseResponse(response)
+            self.updateCallback(lines)
+        except ConnectionAbortedError:
+            pass
 
     @staticmethod
     def parseResponse(res):
         lines = res.split('\n')
-        lines = [l.strip() for l in lines]
-        lines = filter(lambda x: x[-4:] == '.mp4', lines)
-        return lines
+        return lines[1:]

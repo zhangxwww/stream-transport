@@ -41,20 +41,21 @@ class ServerRtspController:
         self.sessionid = random.randint(1, 99999)
 
     def start(self):
-        empty = 0
         while self.rtspSocket is not None:
             request = self.recvRtspRequest()
             print('\nRequest:')
             print(request)
             if not request:
-                empty += 1
-                if empty > 10:
-                    break
+                break
             self.handleRequest(request)
         self.teardown()
 
     def recvRtspRequest(self):
-        return self.rtspSocket.recv(2048).decode('utf-8')
+        try:
+            request = self.rtspSocket.recv(2048).decode('utf-8')
+        except ConnectionResetError:
+            request = ''
+        return request
 
     def handleRequest(self, request):
         if not request:
