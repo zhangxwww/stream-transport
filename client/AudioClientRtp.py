@@ -1,10 +1,10 @@
 import threading
 import sounddevice as sd
 from io import BytesIO
-import numpy as np
 
 from client.RtpPacket import RtpPacket
 from client.ClientRtp import ClientRtp
+from client.Buffer import BufferQueue
 
 BUF_SIZE = 20480
 
@@ -14,22 +14,15 @@ class AudioClientRtp(ClientRtp):
         super(AudioClientRtp, self).__init__(addr, *args, **kwargs)
 
         self.seqNum = 0
-
-        self.bufferSemaphore = None
-        self.displaySemaphore = None
-
         self.fs = None
-
-        self.decodeChunk = None
-
+        self.lastFrameNbr = 0
+        self.buffer = BufferQueue()
         self.out = None
 
     def beforeRun(self):
         self.out = sd.RawOutputStream(samplerate=self.fs, channels=2, dtype='float32', blocksize=1)
         self.out.start()
         self.setInterval(0)
-        self.bufferSemaphore = threading.Semaphore(value=1)
-        self.displaySemaphore = threading.Semaphore(value=0)
         threading.Thread(target=self.recvRtp, daemon=True).start()
 
     def afterRun(self):
@@ -54,6 +47,7 @@ class AudioClientRtp(ClientRtp):
                     if currentSeqNbr > self.seqNum:
                         # TODO check it later
                         self.seqNum = currentSeqNbr
+                        self.lastFrameNbr = rtpPacket.timestamp()
                         byte = rtpPacket.getPayload()
                         byteStream.write(byte)
                     if marker == 1:
@@ -63,26 +57,14 @@ class AudioClientRtp(ClientRtp):
                 except AttributeError:
                     break
             chunk = byteStream.getbuffer()
-            self.bufferSemaphore.acquire()
-            self.decodeChunk = chunk
-            self.displaySemaphore.release()
+            self.buffer.put(self.lastFrameNbr, chunk)
 
     def display(self):
-        self.displaySemaphore.acquire()
-        chunk = self.decodeChunk
-        self.bufferSemaphore.release()
+        chunk = self.buffer.get()
         if chunk is None:
             self._display_interval.wait(self.interval)
         else:
             self.out.write(chunk)
-
-    @staticmethod
-    def decode(byteStream):
-        try:
-            chunk = np.frombuffer(byteStream.getvalue(), dtype=np.float32).reshape(-1, 2)
-        except ValueError:
-            chunk = None
-        return chunk
 
     def setFrameRate(self, fs):
         self.fs = fs

@@ -126,8 +126,8 @@ class Client:
         self.fileListBox.bind('<Double-Button-1>', self.doubleClickFileListBoxHandler)
 
     def describe(self, filename):
-        #self.start_pause['text'] = 'Loading ...'
-        #self.start_pause['command'] = None
+        # self.start_pause['text'] = 'Loading ...'
+        # self.start_pause['command'] = None
         self.rtspController.describe(filename)
 
     def setup(self):
@@ -218,8 +218,8 @@ class Client:
         def setupCallback():
             self.updateCurrentTimeLabel()
             self.updateTotalTimeLabel()
-            #self.start_pause['text'] = 'Play'
-            #self.start_pause['command'] = self.play
+            # self.start_pause['text'] = 'Play'
+            # self.start_pause['command'] = self.play
             self.play()
 
         def playCallback():

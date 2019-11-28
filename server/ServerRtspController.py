@@ -148,7 +148,7 @@ class ServerRtspController:
         framerate = math.floor(self.cap.get(cv2.CAP_PROP_FPS))
         length = math.floor(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         return {
-            'length': length, # n frames
+            'length': length,  # n frames
             'framerate': framerate
         }
 

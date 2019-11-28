@@ -4,6 +4,7 @@ from io import BytesIO
 
 from client.ClientRtp import ClientRtp
 from client.RtpPacket import RtpPacket
+from client.Buffer import BufferQueue
 
 BUF_SIZE = 20480
 
@@ -13,19 +14,11 @@ class VideoClientRtp(ClientRtp):
         super(VideoClientRtp, self).__init__(addr, *args, **kwargs)
 
         self.seqNum = 0
-
-        self.bufferSemaphore = None
-        self.displaySemaphore = None
-
         self.lastFrameNbr = 0
-
-        self.decodeFrame = None
-
+        self.buffer = BufferQueue()
         self.displayCallback = None
 
     def beforeRun(self):
-        self.bufferSemaphore = threading.Semaphore(value=1)
-        self.displaySemaphore = threading.Semaphore(value=0)
         threading.Thread(target=self.recvRtp, daemon=True).start()
 
     def afterRun(self):
@@ -62,18 +55,14 @@ class VideoClientRtp(ClientRtp):
                     break
             frame = self.decode(byteStream)
             byteStream.close()
-            self.bufferSemaphore.acquire()
-            self.decodeFrame = frame
-            self.displaySemaphore.release()
+            self.buffer.put(self.lastFrameNbr, frame)
 
     @staticmethod
     def decode(byteStream):
         try:
             frame = Image.open(byteStream)
-
-            # TODO
-            # frame = frame.resize((640, 360))
-
+            if frame.size[1] != 270:
+                frame = frame.resize((480, 270))
             frame = ImageTk.PhotoImage(frame)
         except OSError:
             frame = None
@@ -83,9 +72,7 @@ class VideoClientRtp(ClientRtp):
         self.displayCallback = displayCallback
 
     def display(self):
-        self.displaySemaphore.acquire()
-        frame = self.decodeFrame
-        self.bufferSemaphore.release()
+        frame = self.buffer.get()
         if frame is None:
             self._display_interval.wait(self.interval)
         else:

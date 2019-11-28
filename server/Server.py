@@ -23,7 +23,6 @@ class Server:
         self.listenRtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.listenRtspSocket.bind((self.addr, self.rtspPort))
 
-
     def startServer(self):
         self.listenRtspSocket.listen(10)
         print('listening ...')

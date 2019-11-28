@@ -22,7 +22,6 @@ class ClientRtspController:
         self.serverAddr = serveraddr
         self.serverPort = serverport
 
-
         self.videoRtpPort = 0
         self.audioRtpPort = 0
 
@@ -247,6 +246,3 @@ class ClientRtspController:
 
     def getTotalTime(self):
         return int(self.videoLength / self.videoFrameRate)
-
-
-

@@ -37,7 +37,7 @@ class VideoServerRtp(ServerRtp):
         while self._stopper.is_set():
             if self.cap is None:
                 return
-            #print(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
+            # print(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
             res, frame = self.cap.read()
             frame = cv2.resize(frame, (480, 270))
             if not res:

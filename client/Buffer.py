@@ -1,11 +1,13 @@
 import threading
 
+
 class BufferQueueNode:
     def __init__(self, seq, content):
         self.seq = seq
         self.content = content
         self.next = None
         self.prev = None
+
 
 class BufferQueue:
     def __init__(self):
@@ -30,11 +32,12 @@ class BufferQueue:
 
     def get(self):
         self.lock.acquire()
-        p = self.head.next
-        if p == self.tail:
+        if self.length == 0:
+            self.lock.release()
             return None
+        p = self.head.next
         self.head.next = p.next
-        self.head.prev = None
+        p.next.prev = self.head
         self.length -= 1
         self.lock.release()
         return p.content
@@ -57,7 +60,9 @@ if __name__ == '__main__':
         buffer.put(3, 3)
         buffer.put(2, 2)
         buffer.put(4, 4)
-        for _ in range(5):
+        for _ in range(6):
             print(buffer.get())
-    test()
+            print(buffer.length)
 
+
+    test()

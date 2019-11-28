@@ -7,6 +7,7 @@ from server.RtpPacket import RtpPacket
 
 BUF_SIZE = 16386
 
+
 class AudioServerRtp(ServerRtp):
     def __init__(self, addr, port, *args, **kwargs):
         super(AudioServerRtp, self).__init__(addr, port, *args, **kwargs)
