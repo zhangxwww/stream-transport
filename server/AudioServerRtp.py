@@ -68,10 +68,10 @@ class AudioServerRtp(ServerRtp):
             self.socket.sendto(packet.getPacket(), (self.clientAddr, self.clientPort))
         byteStream.close()
 
-    def setAudio(self, audio, audioLength):
+    def setAudio(self, audio, audioLength, fs):
         # audioLength: seconds
-        self.setInterval(0.04 / 1.5)
-        self.chunkLength = 0.04
+        self.setInterval(1 / fs / 1.5)
+        self.chunkLength = 1 / fs
         self.audio = audio
         self.fs = audio.fps
         self.chunkSize = int(self.fs * self.chunkLength)

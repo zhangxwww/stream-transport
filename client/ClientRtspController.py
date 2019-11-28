@@ -18,7 +18,7 @@ class ClientRtspController:
     PAUSE = 3
     TEARDOWN = 4
 
-    def __init__(self, serveraddr, serverport, rtpport, updateVideoCallback, filename):
+    def __init__(self, serveraddr, serverport, rtpport, updateVideoCallback):
         self.serverAddr = serveraddr
         self.serverPort = serverport
 
@@ -42,7 +42,7 @@ class ClientRtspController:
         self.audioRtp = None
         self.audioFrameRate = 0
 
-        self.filename = filename
+        self.filename = ''
 
         self.warningBox = None
         self.recvCallback = None
@@ -59,8 +59,9 @@ class ClientRtspController:
     def setRecvCallback(self, callback):
         self.recvCallback = callback
 
-    def describe(self):
+    def describe(self, filename):
         if self.state == self.INIT:
+            self.filename = filename
             self.sendRtspRequest(self.DESCRIBE)
 
     def setup(self):
@@ -69,6 +70,7 @@ class ClientRtspController:
 
     def play(self, pos=None):
         if self.state == self.READY:
+            self.stopRtp()
             self.openRtpPort()
 
             self.videoRtp.setDisplay(self.updateVideo)
@@ -90,6 +92,10 @@ class ClientRtspController:
 
     def teardown(self):
         self.sendRtspRequest(self.TEARDOWN)
+
+    def stop(self):
+        self.pause()
+        self.state = self.INIT
 
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
@@ -152,18 +158,25 @@ class ClientRtspController:
     def recvRtspReply(self):
         """Receive RTSP reply from the server."""
         while True:
-            reply = self.rtspSocket.recv(4096)
+            try:
+                reply = self.rtspSocket.recv(4096)
+            except OSError:
+                break
             print('\nreply')
             print(reply.decode('utf-8'))
 
-            if reply:
-                self.parseRtspReply(reply.decode("utf-8"))
-                self.recvCallback()
+            if not reply:
+                break
+            self.parseRtspReply(reply.decode("utf-8"))
+            self.recvCallback()
             # Close the RTSP socket upon requesting Teardown
             if self.requestSent == self.TEARDOWN:
                 self.stopRtp()
-                self.rtspSocket.shutdown(socket.SHUT_RDWR)
-                self.rtspSocket.close()
+                try:
+                    self.rtspSocket.shutdown(socket.SHUT_RDWR)
+                    self.rtspSocket.close()
+                except OSError:
+                    pass
                 break
 
     def parseRtspReply(self, data):

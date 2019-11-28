@@ -7,16 +7,12 @@ from client.FileExplorer import FileExplorer
 
 
 class Client:
-    def __init__(self, serveraddr, serverport, rtpport, filename):
+    def __init__(self, serveraddr, serverport, rtpport):
         self.rtspController = None
         self.fileExplorer = None
 
         self.master = None
-        self.describe = None
-        self.setup = None
-        self.start = None
-        self.pause = None
-        self.teardown = None
+        self.start_pause = None
         self.displayLabel = None
         self.scale = None
         self.currentTimeLabel = None
@@ -29,13 +25,15 @@ class Client:
 
         self.videoTime = 0
 
+        self.filenames = []
+
         self.recvRtspCallback = {}
-        self.init(serveraddr, serverport, rtpport, filename)
+        self.init(serveraddr, serverport, rtpport)
 
         self.master.mainloop()
 
-    def init(self, serveraddr, serverport, rtpport, filename):
-        self.rtspController = ClientRtspController(serveraddr, serverport, rtpport, self.updateVideo, filename)
+    def init(self, serveraddr, serverport, rtpport):
+        self.rtspController = ClientRtspController(serveraddr, serverport, rtpport, self.updateVideo)
         self.rtspController.setWarningBox(tkinter.messagebox)
         self.rtspController.connectToServer()
         self.createWidgets()
@@ -65,35 +63,11 @@ class Client:
         buttonArea = tkinter.Frame(leftFrame, width=26, height=5, bg='red')
         buttonArea.grid(row=2, column=0, padx=1, pady=1)
 
-        # Create Describe button
-        self.describe = Button(buttonArea, width=20, padx=3, pady=3)
-        self.describe["text"] = "Describe"
-        self.describe["command"] = self.rtspController.describe
-        self.describe.grid(row=1, column=0, padx=2, pady=2)
-
-        # Create Setup button
-        self.setup = Button(buttonArea, width=20, padx=3, pady=3)
-        self.setup["text"] = "Setup"
-        self.setup["command"] = self.rtspController.setup
-        self.setup.grid(row=1, column=1, padx=2, pady=2)
-
         # Create Play button
-        self.start = Button(buttonArea, width=20, padx=3, pady=3)
-        self.start["text"] = "Play"
-        self.start["command"] = self.rtspController.play
-        self.start.grid(row=1, column=2, padx=2, pady=2)
-
-        # Create Pause button
-        self.pause = Button(buttonArea, width=20, padx=3, pady=3)
-        self.pause["text"] = "Pause"
-        self.pause["command"] = self.rtspController.pause
-        self.pause.grid(row=2, column=0, padx=2, pady=2)
-
-        # Create Teardown button
-        self.teardown = Button(buttonArea, width=20, padx=3, pady=3)
-        self.teardown["text"] = "Teardown"
-        self.teardown["command"] = self.exit
-        self.teardown.grid(row=2, column=1, padx=2, pady=2)
+        self.start_pause = Button(buttonArea, width=20, padx=3, pady=3)
+        self.start_pause["text"] = "Play"
+        self.start_pause["command"] = self.play
+        self.start_pause.grid(row=0, column=0, padx=2, pady=2)
 
         self.scale = tkinter.Scale(
             scaleArea, from_=0, to=1000,
@@ -151,7 +125,25 @@ class Client:
         self.fileListBox.pack(side='left', fill='both')
         self.fileListBox.bind('<Double-Button-1>', self.doubleClickFileListBoxHandler)
 
-    def exit(self):
+    def describe(self, filename):
+        #self.start_pause['text'] = 'Loading ...'
+        #self.start_pause['command'] = None
+        self.rtspController.describe(filename)
+
+    def setup(self):
+        self.rtspController.setup()
+
+    def play(self):
+        self.rtspController.play()
+        self.start_pause["text"] = "Pause"
+        self.start_pause["command"] = self.pause
+
+    def pause(self):
+        self.rtspController.pause()
+        self.start_pause["text"] = "Play"
+        self.start_pause["command"] = self.play
+
+    def teardown(self):
         self.rtspController.teardown()
         self.fileExplorer.close()
         self.master.destroy()
@@ -173,7 +165,7 @@ class Client:
     def exitHandler(self):
         self.rtspController.pause()
         if tkinter.messagebox.askokcancel("Quit?", "Are you sure you want to quit?"):
-            self.exit()
+            self.teardown()
         else:  # When the user presses cancel, resume playing.
             self.rtspController.play()
 
@@ -189,8 +181,9 @@ class Client:
         threading.Thread(target=self.fileExplorer.search, args=(info,), daemon=True).start()
 
     def doubleClickFileListBoxHandler(self, _):
-        print(self.fileListBox.curselection()[0])
-        # TODO
+        self.rtspController.stop()
+        index = self.fileListBox.curselection()[0]
+        self.describe(self.filenames[index])
 
     def updateCurrentTimeLabel(self):
         currentTime = self.rtspController.getCurrentTime()
@@ -213,33 +206,37 @@ class Client:
         self.fileListBox.delete(0, 'end')
         for l in li:
             self.fileListBox.insert('end', l.strip())
+        self.filenames = li[:]
 
     def rtspRecvCallback(self):
         self.recvRtspCallback[self.rtspController.requestSent]()
 
     def getRtspRecvCallbackOfEachState(self):
-        def describe():
-            pass
+        def describeCallback():
+            self.setup()
 
-        def setup():
+        def setupCallback():
             self.updateCurrentTimeLabel()
             self.updateTotalTimeLabel()
+            #self.start_pause['text'] = 'Play'
+            #self.start_pause['command'] = self.play
+            self.play()
 
-        def play():
+        def playCallback():
             self.updateCurrentTimeLabel()
 
-        def pause():
+        def pauseCallback():
             pass
 
-        def teardown():
+        def teardownCallback():
             pass
 
         self.recvRtspCallback = {
-            self.rtspController.DESCRIBE: describe,
-            self.rtspController.SETUP: setup,
-            self.rtspController.PLAY: play,
-            self.rtspController.PAUSE: pause,
-            self.rtspController.TEARDOWN: teardown
+            self.rtspController.DESCRIBE: describeCallback,
+            self.rtspController.SETUP: setupCallback,
+            self.rtspController.PLAY: playCallback,
+            self.rtspController.PAUSE: pauseCallback,
+            self.rtspController.TEARDOWN: teardownCallback
         }
 
     def setTimeLabel(self, stringVar, t):
@@ -266,8 +263,7 @@ if __name__ == '__main__':
     parser.add_argument('--host', type=str, default='127.0.0.1')
     parser.add_argument('--port', type=int, default=554)
     parser.add_argument('--rtpport', type=int, default=44444)
-    parser.add_argument('--filename', type=str, default='linker.mp4')
 
     args = vars(parser.parse_args())
 
-    Client(args['host'], args['port'], args['rtpport'], args['filename'])
+    Client(args['host'], args['port'], args['rtpport'])

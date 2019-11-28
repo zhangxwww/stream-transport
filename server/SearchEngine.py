@@ -18,6 +18,7 @@ class SearchEngine:
 
         self.initConnection()
         self.initCategory()
+        self.startServer()
 
     def initConnection(self):
         self.listenSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

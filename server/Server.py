@@ -16,7 +16,6 @@ class Server:
         self.listenRtspSocket = None
         self.search = None
 
-        self.initSearchEngine()
         self.initConnection()
         self.startServer()
 
@@ -24,9 +23,6 @@ class Server:
         self.listenRtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.listenRtspSocket.bind((self.addr, self.rtspPort))
 
-    def initSearchEngine(self):
-        self.search = SearchEngine(self.addr, 20000, self.videoDir)
-        multiprocessing.Process(target=self.search.startServer).start()
 
     def startServer(self):
         self.listenRtspSocket.listen(10)
@@ -53,4 +49,5 @@ if __name__ == '__main__':
 
     args = vars(parser.parse_args())
 
+    multiprocessing.Process(target=SearchEngine, args=(args['host'], 20000, args['dir'])).start()
     Server(args['host'], args['rtspport'], args['rtpport'], args['dir'])

@@ -141,6 +141,9 @@ class ServerRtspController:
         return self.info
 
     def getVideoInfo(self, filename):
+        if self.cap is not None:
+            self.cap.release()
+            self.cap = None
         self.cap = cv2.VideoCapture(os.path.join(self.videoDir, filename))
         framerate = math.floor(self.cap.get(cv2.CAP_PROP_FPS))
         length = math.floor(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -162,10 +165,11 @@ class ServerRtspController:
         self.videoRtp.setSsrc(self.ssrc)
         self.videoRtp.setCapture(self.cap)
 
+        fs = self.info['video']['framerate']
         self.audioRtp = AudioServerRtp(self.addr, self.rtpPort + 2)
         self.audioRtp.setClientInfo(self.clientAddr, self.clientVideoRtpPort + 2)
         self.audioRtp.setSsrc(self.ssrc)
-        self.audioRtp.setAudio(self.audioClip, self.info['video']['length'] / self.info['video']['framerate'])
+        self.audioRtp.setAudio(self.audioClip, self.info['video']['length'] / fs, fs)
 
     def play(self, pos):
         if pos is not None:
