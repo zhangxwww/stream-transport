@@ -21,6 +21,9 @@ class Client:
         self.totalTimeLabel = None
         self.currentTimeLabelStringVar = None
         self.totalTimeLabelStringVar = None
+        self.searchVar = None
+        self.searchEntry = None
+        self.fileListBox = None
 
         self.videoTime = 0
 
@@ -45,6 +48,9 @@ class Client:
 
         leftFrame = tkinter.Frame(self.master, width=30, height=30, bg='pink')
         leftFrame.grid(row=0, column=0, padx=2, pady=2)
+
+        rightFrame = tkinter.Frame(self.master, width=30, height=30, bg='black')
+        rightFrame.grid(row=0, column=1, padx=2, pady=2)
 
         displayArea = tkinter.Frame(leftFrame, width=26, height=21, bg='yellow')
         displayArea.grid(row=0, column=0, padx=1, pady=1)
@@ -104,6 +110,7 @@ class Client:
             row=1, column=0, padx=2, pady=2,
             sticky=tkinter.NW
         )
+        self.currentTimeLabelStringVar.set('0:00:00')
 
         self.totalTimeLabelStringVar = tkinter.StringVar()
         self.totalTimeLabel = tkinter.Label(
@@ -115,6 +122,7 @@ class Client:
             row=1, column=1, padx=2, pady=2,
             sticky=tkinter.NE
         )
+        self.totalTimeLabelStringVar.set('0:00:00')
 
         # Create a label to display the movie
         self.displayLabel = Label(displayArea, height=19)
@@ -123,9 +131,31 @@ class Client:
             sticky=W + E + N + S, padx=5, pady=5
         )
 
+        self.searchVar = tkinter.StringVar()
+        self.searchEntry = tkinter.Entry(rightFrame, textvariable=self.searchVar)
+        self.searchEntry.grid(row=0, column=0, padx=2, pady=2)
+        self.searchVar.set('File name/category')
+        self.searchEntry.bind('<Key-KP_Enter>', self.enterEntryHandler)
+        self.searchEntry.bind('<Key-Return>', self.enterEntryHandler)
+
+        listFrame = tkinter.Frame(rightFrame, width=30, height=30, bg='pink')
+        listFrame.grid(row=1, column=0, padx=2, pady=2)
+
+        fileListScroll = tkinter.Scrollbar(listFrame)
+        self.fileListBox = tkinter.Listbox(listFrame, yscrollcommand=fileListScroll.set)
+        fileListScroll.config(command=self.fileListBox.yview)
+        fileListScroll.pack(side='right', fill='y')
+        self.fileListBox.pack(side='left', fill='both')
+        self.fileListBox.bind('<Double-Button-1>', self.doubleClickFileListBoxHandler)
+
+        self.fileListBox.insert(0, 'first')
+        self.fileListBox.insert(1, 'second')
+        self.fileListBox.insert(2, 'third')
+
+
     def exit(self):
         self.rtspController.teardown()
-        # self.master.destroy()
+        self.master.destroy()
 
     def updateVideo(self, frame):
         self.displayLabel.configure(image=frame, height=270)
@@ -154,6 +184,12 @@ class Client:
     def releaseScaleHandler(self, _):
         pos = self.scale.get()
         self.rtspController.play(pos=pos)
+
+    def enterEntryHandler(self, _):
+        print(self.searchVar.get())
+
+    def doubleClickFileListBoxHandler(self, _):
+        print(self.fileListBox.curselection()[0])
 
     def updateCurrentTimeLabel(self):
         currentTime = self.rtspController.getCurrentTime()
@@ -190,7 +226,7 @@ class Client:
             pass
 
         def teardown():
-            self.master.destroy()
+            pass
 
         self.recvRtspCallback = {
             self.rtspController.DESCRIBE: describe,
@@ -224,7 +260,7 @@ if __name__ == '__main__':
     parser.add_argument('--host', type=str, default='127.0.0.1')
     parser.add_argument('--port', type=int, default=554)
     parser.add_argument('--rtpport', type=int, default=44444)
-    parser.add_argument('--filename', type=str, default='a.mp4')
+    parser.add_argument('--filename', type=str, default='linker.mp4')
 
     args = vars(parser.parse_args())
 
