@@ -3,11 +3,13 @@ from tkinter import *
 import tkinter.messagebox
 
 from client.ClientRtspController import ClientRtspController
+from client.FileExplorer import FileExplorer
 
 
 class Client:
     def __init__(self, serveraddr, serverport, rtpport, filename):
         self.rtspController = None
+        self.fileExplorer = None
 
         self.master = None
         self.describe = None
@@ -40,6 +42,7 @@ class Client:
         self.getRtspRecvCallbackOfEachState()
         self.rtspController.setRecvCallback(self.rtspRecvCallback)
         threading.Thread(target=self.updateTimeLabelThread, daemon=True).start()
+        self.fileExplorer = FileExplorer(serveraddr, 20000, self.updateFileListBoxCallback)
 
     def createWidgets(self):
         """Build GUI."""
@@ -155,6 +158,7 @@ class Client:
 
     def exit(self):
         self.rtspController.teardown()
+        self.fileExplorer.close()
         self.master.destroy()
 
     def updateVideo(self, frame):
@@ -186,10 +190,12 @@ class Client:
         self.rtspController.play(pos=pos)
 
     def enterEntryHandler(self, _):
-        print(self.searchVar.get())
+        info = self.searchVar.get()
+        threading.Thread(target=self.fileExplorer.search, args=(info,), daemon=True).start()
 
     def doubleClickFileListBoxHandler(self, _):
         print(self.fileListBox.curselection()[0])
+        # TODO
 
     def updateCurrentTimeLabel(self):
         currentTime = self.rtspController.getCurrentTime()
@@ -207,6 +213,11 @@ class Client:
         )
         self.videoTime = totalTime
         return totalTime
+
+    def updateFileListBoxCallback(self, li):
+        self.fileListBox.delete(0, 'end')
+        for l in li:
+            self.fileListBox.insert('end', l.strip())
 
     def rtspRecvCallback(self):
         self.recvRtspCallback[self.rtspController.requestSent]()
