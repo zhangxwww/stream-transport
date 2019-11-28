@@ -25,7 +25,7 @@ class AudioClientRtp(ClientRtp):
         self.out = None
 
     def beforeRun(self):
-        self.out = sd.OutputStream()
+        self.out = sd.RawOutputStream(samplerate=self.fs, channels=2, dtype='float32', blocksize=1)
         self.out.start()
         self.setInterval(0)
         self.bufferSemaphore = threading.Semaphore(value=1)
@@ -62,8 +62,7 @@ class AudioClientRtp(ClientRtp):
                     continue
                 except AttributeError:
                     break
-            chunk = self.decode(byteStream)
-            byteStream.close()
+            chunk = byteStream.getbuffer()
             self.bufferSemaphore.acquire()
             self.decodeChunk = chunk
             self.displaySemaphore.release()
