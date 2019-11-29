@@ -24,6 +24,7 @@ class Client:
         self.fileListBox = None
         self.advanceButton = None
         self.delayButton = None
+        self.qualityButton = None
 
         self.videoTime = 0
 
@@ -81,6 +82,11 @@ class Client:
         self.advanceButton["text"] = "+0.5s"
         self.advanceButton["command"] = self.advance
         self.advanceButton.grid(row=1, column=1, padx=2, pady=2)
+
+        self.qualityButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.qualityButton["text"] = "Blur"
+        self.qualityButton["command"] = self.blur
+        self.qualityButton.grid(row=1, column=2, padx=2, pady=2)
 
         self.scale = tkinter.Scale(
             scaleArea, from_=0, to=1000,
@@ -166,6 +172,16 @@ class Client:
 
     def advance(self):
         self.rtspController.audioTrackAlign(0.5)
+
+    def blur(self):
+        self.qualityButton['text'] = 'Normal'
+        self.qualityButton['command'] = self.highDefinition
+        self.rtspController.quality(self.rtspController.BLUR)
+
+    def highDefinition(self):
+        self.qualityButton['text'] = 'Blur'
+        self.qualityButton['command'] = self.blur
+        self.rtspController.quality(self.rtspController.HD)
 
     def updateVideo(self, frame):
         self.displayLabel.configure(image=frame, height=270)

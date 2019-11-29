@@ -19,6 +19,9 @@ class ClientRtspController:
     TEARDOWN = 4
     SET_PARAMETER = 5
 
+    BLUR = 0
+    HD = 1
+
     def __init__(self, serveraddr, serverport):
         self.serverAddr = serveraddr
         self.serverPort = serverport
@@ -105,6 +108,9 @@ class ClientRtspController:
         self.sendRtspRequest(self.SET_PARAMETER, align=seconds)
         self.audioRtp.clearBuffer()
 
+    def quality(self, level):
+        self.sendRtspRequest(self.SET_PARAMETER, level=level)
+
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
 
@@ -162,6 +168,8 @@ class ClientRtspController:
                 self.sessionid)
             if 'align' in kwargs.keys():
                 request = request + '\nalign: ' + str(kwargs['align'])
+            elif 'level' in kwargs.keys():
+                request = request + '\nlevel: ' + str(kwargs['level'])
             else:
                 return
         else:
