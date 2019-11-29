@@ -86,22 +86,6 @@ class AudioServerRtp(ServerRtp):
             if index >= self.chunkSize:
                 break
             chunk[index] = c
-        '''
-        if not self.doubleSpeed:
-            subClip = self.audio.subclip(start, start + self.interval)
-            for index, c in enumerate(subClip.iter_frames()):
-                if index >= self.chunkSize:
-                    break
-                chunk[index] = c
-        else:
-            subClip = self.audio.subclip(start, start + 2 * self.interval)
-            for index, c in enumerate(subClip.iter_frames()):
-                if index // 2 >= self.chunkSize:
-                    break
-                if index % 2 == 1:
-                    continue
-                chunk[index // 2] = c
-        '''
         return chunk
 
     def setPosition(self, pos):
