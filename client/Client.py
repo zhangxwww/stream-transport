@@ -25,6 +25,7 @@ class Client:
         self.advanceButton = None
         self.delayButton = None
         self.qualityButton = None
+        self.muteButton = None
 
         self.videoTime = 0
 
@@ -73,20 +74,25 @@ class Client:
         self.start_pause["command"] = self.play
         self.start_pause.grid(row=0, column=0, columnspan=2, padx=2, pady=2)
 
+        self.muteButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.muteButton["text"] = "Mute"
+        self.muteButton["command"] = self.mute
+        self.muteButton.grid(row=1, column=0, padx=2, pady=2)
+
         self.delayButton = Button(buttonArea, width=10, padx=3, pady=3)
         self.delayButton["text"] = "-0.5s"
         self.delayButton["command"] = self.delay
-        self.delayButton.grid(row=1, column=0, padx=2, pady=2)
+        self.delayButton.grid(row=1, column=1, padx=2, pady=2)
 
         self.advanceButton = Button(buttonArea, width=10, padx=3, pady=3)
         self.advanceButton["text"] = "+0.5s"
         self.advanceButton["command"] = self.advance
-        self.advanceButton.grid(row=1, column=1, padx=2, pady=2)
+        self.advanceButton.grid(row=1, column=2, padx=2, pady=2)
 
         self.qualityButton = Button(buttonArea, width=10, padx=3, pady=3)
         self.qualityButton["text"] = "Blur"
         self.qualityButton["command"] = self.blur
-        self.qualityButton.grid(row=1, column=2, padx=2, pady=2)
+        self.qualityButton.grid(row=1, column=3, padx=2, pady=2)
 
         self.scale = tkinter.Scale(
             scaleArea, from_=0, to=1000,
@@ -182,6 +188,10 @@ class Client:
         self.qualityButton['text'] = 'Blur'
         self.qualityButton['command'] = self.blur
         self.rtspController.quality(self.rtspController.HD)
+
+    def mute(self):
+        self.muteButton['text'] = 'Voice'
+        self.rtspController.mute()
 
     def updateVideo(self, frame):
         self.displayLabel.configure(image=frame, height=270)

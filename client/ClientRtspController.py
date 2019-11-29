@@ -111,6 +111,9 @@ class ClientRtspController:
     def quality(self, level):
         self.sendRtspRequest(self.SET_PARAMETER, level=level)
 
+    def mute(self):
+        self.audioRtp.mute()
+
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
 
