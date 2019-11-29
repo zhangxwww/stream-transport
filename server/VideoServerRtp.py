@@ -7,6 +7,8 @@ from server.RtpPacket import RtpPacket
 
 BUF_SIZE = 16384
 
+BLUR = 0
+HD = 1
 
 class VideoServerRtp(ServerRtp):
     def __init__(self, addr, port, *args, **kwargs):
@@ -17,6 +19,8 @@ class VideoServerRtp(ServerRtp):
         self.cap = None
 
         self.currentSeq = 1
+
+        self.quality = (480, 270)
 
         self.bufferSemaphore = None
         self.sendSemaphore = None
@@ -39,7 +43,7 @@ class VideoServerRtp(ServerRtp):
                 return
             # print(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
             res, frame = self.cap.read()
-            frame = cv2.resize(frame, (480, 270))
+            frame = cv2.resize(frame, self.quality)
             if not res:
                 return
             encode = cv2.imencode('.jpg', frame)
@@ -83,3 +87,9 @@ class VideoServerRtp(ServerRtp):
         # pos: .%
         self.currentFrame = int(self.totalLength * pos / 1000)
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.currentFrame)
+
+    def setQuality(self, level):
+        if level == HD:
+            self.quality = (480, 270)
+        elif level == BLUR:
+            self.quality = (320, 180)

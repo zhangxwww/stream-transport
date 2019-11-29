@@ -84,9 +84,15 @@ class ServerRtspController:
             self.sendTearDownResponse(seq)
             self.teardown()
         elif command == 'SET_PARAMETER':
-            align = float(lines[3].split(' ')[-1])
-            self.audioAlign(align)
-            self.sendSetParameterResponse(seq)
+            key, value = lines[3].split(':')
+            if key == 'align':
+                align = float(value)
+                self.audioRtp.align(align)
+                self.sendSetParameterResponse(seq)
+            elif key == 'level':
+                level = int(value)
+                self.videoRtp.setQuality(level)
+                self.sendSetParameterResponse(seq)
         else:
             return
 
@@ -216,6 +222,3 @@ class ServerRtspController:
         if self.cap is not None:
             self.cap.release()
             self.cap = None
-
-    def audioAlign(self, align):
-        self.audioRtp.align(align)
