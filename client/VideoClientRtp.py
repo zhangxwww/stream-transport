@@ -44,7 +44,7 @@ class VideoClientRtp(ClientRtp):
                     if currentSeqNbr > self.seqNum:
                         # TODO assume in order
                         self.seqNum = currentSeqNbr
-                        self.lastFrameNbr = rtpPacket.timestamp()
+                        lastFrameNbr = rtpPacket.timestamp()
                         byte = rtpPacket.getPayload()
                         byteStream.write(byte)
                     if marker == 1:
@@ -55,7 +55,7 @@ class VideoClientRtp(ClientRtp):
                     break
             frame = self.decode(byteStream)
             byteStream.close()
-            self.buffer.put(self.lastFrameNbr, frame)
+            self.buffer.put(lastFrameNbr, frame)
 
     @staticmethod
     def decode(byteStream):
@@ -72,10 +72,12 @@ class VideoClientRtp(ClientRtp):
         self.displayCallback = displayCallback
 
     def display(self):
-        frame = self.buffer.get()
+        seq, frame = self.buffer.get()
         if frame is None:
-            self._display_interval.wait(self.interval)
+            #self._display_interval.wait(self.interval)
+            pass
         else:
+            self.lastFrameNbr = seq
             self.displayCallback(frame)
 
     def getPosition(self):

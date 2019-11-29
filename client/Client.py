@@ -7,7 +7,7 @@ from client.FileExplorer import FileExplorer
 
 
 class Client:
-    def __init__(self, serveraddr, serverport, rtpport):
+    def __init__(self, serveraddr, serverport):
         self.rtspController = None
         self.fileExplorer = None
 
@@ -22,18 +22,21 @@ class Client:
         self.searchVar = None
         self.searchEntry = None
         self.fileListBox = None
+        self.advanceButton = None
+        self.delayButton = None
 
         self.videoTime = 0
 
         self.filenames = []
 
         self.recvRtspCallback = {}
-        self.init(serveraddr, serverport, rtpport)
+        self.init(serveraddr, serverport)
 
         self.master.mainloop()
 
-    def init(self, serveraddr, serverport, rtpport):
-        self.rtspController = ClientRtspController(serveraddr, serverport, rtpport, self.updateVideo)
+    def init(self, serveraddr, serverport):
+        self.rtspController = ClientRtspController(serveraddr, serverport)
+        self.rtspController.setUpdateVideoCallback(self.updateVideo)
         self.rtspController.setWarningBox(tkinter.messagebox)
         self.rtspController.connectToServer()
         self.createWidgets()
@@ -67,7 +70,17 @@ class Client:
         self.start_pause = Button(buttonArea, width=20, padx=3, pady=3)
         self.start_pause["text"] = "Play"
         self.start_pause["command"] = self.play
-        self.start_pause.grid(row=0, column=0, padx=2, pady=2)
+        self.start_pause.grid(row=0, column=0, columnspan=2, padx=2, pady=2)
+
+        self.delayButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.delayButton["text"] = "-0.5s"
+        self.delayButton["command"] = self.delay
+        self.delayButton.grid(row=1, column=0, padx=2, pady=2)
+
+        self.advanceButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.advanceButton["text"] = "+0.5s"
+        self.advanceButton["command"] = self.advance
+        self.advanceButton.grid(row=1, column=1, padx=2, pady=2)
 
         self.scale = tkinter.Scale(
             scaleArea, from_=0, to=1000,
@@ -147,6 +160,12 @@ class Client:
         self.rtspController.teardown()
         self.fileExplorer.close()
         self.master.destroy()
+
+    def delay(self):
+        self.rtspController.audioTrackAlign(-0.5)
+
+    def advance(self):
+        self.rtspController.audioTrackAlign(0.5)
 
     def updateVideo(self, frame):
         self.displayLabel.configure(image=frame, height=270)
@@ -262,8 +281,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', type=str, default='127.0.0.1')
     parser.add_argument('--port', type=int, default=554)
-    parser.add_argument('--rtpport', type=int, default=44444)
 
     args = vars(parser.parse_args())
 
-    Client(args['host'], args['port'], args['rtpport'])
+    Client(args['host'], args['port'])

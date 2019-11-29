@@ -82,10 +82,10 @@ class AudioServerRtp(ServerRtp):
         chunk = np.zeros((self.chunkSize, 2), dtype=np.float32)
         start = self.chunkSize * self.currentChunk / self.fs  # Unit: seconds
         subClip = self.audio.subclip(start, start + self.interval)
-        for index, f in enumerate(subClip.iter_frames()):
+        for index, c in enumerate(subClip.iter_frames()):
             if index >= self.chunkSize:
                 break
-            chunk[index] = f
+            chunk[index] = c
         return chunk
 
     def setPosition(self, pos):

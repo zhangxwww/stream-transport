@@ -17,15 +17,16 @@ class ClientRtspController:
     PLAY = 2
     PAUSE = 3
     TEARDOWN = 4
+    SET_PARAMETER = 5
 
-    def __init__(self, serveraddr, serverport, rtpport, updateVideoCallback):
+    def __init__(self, serveraddr, serverport):
         self.serverAddr = serveraddr
         self.serverPort = serverport
 
         self.videoRtpPort = 0
         self.audioRtpPort = 0
 
-        self.updateVideo = updateVideoCallback
+        self.updateVideo = None
 
         self.rtspSeq = 0
         self.sessionid = 0
@@ -57,6 +58,9 @@ class ClientRtspController:
 
     def setRecvCallback(self, callback):
         self.recvCallback = callback
+
+    def setUpdateVideoCallback(self, callback):
+        self.updateVideo = callback
 
     def describe(self, filename):
         if self.state == self.INIT:
@@ -95,6 +99,10 @@ class ClientRtspController:
     def stop(self):
         self.pause()
         self.state = self.INIT
+
+    def audioTrackAlign(self, seconds):
+        # positive seconds for advance, and negative seconds for delay
+        self.sendRtspRequest(self.SET_PARAMETER, align=seconds)
 
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
@@ -146,6 +154,15 @@ class ClientRtspController:
             request = 'TEARDOWN ' + self.filename + ' RTSP/1.0\nCSeq: ' + str(self.rtspSeq) + '\nSession: ' + str(
                 self.sessionid)
             self.requestSent = self.TEARDOWN
+
+        elif requestCode == self.SET_PARAMETER:
+            self.rtspSeq += 1
+            request = 'SET_PARAMETER ' + self.filename + ' RTSP/1.0\nCSeq: ' + str(self.rtspSeq) + '\nSession: ' + str(
+                self.sessionid)
+            if 'align' in kwargs.keys():
+                request = request + '\nalign: ' + str(kwargs['align'])
+            else:
+                return
         else:
             return
 

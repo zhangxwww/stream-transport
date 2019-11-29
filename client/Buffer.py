@@ -34,13 +34,13 @@ class BufferQueue:
         self.lock.acquire()
         if self.length == 0:
             self.lock.release()
-            return None
+            return -1, None
         p = self.head.next
         self.head.next = p.next
         p.next.prev = self.head
         self.length -= 1
         self.lock.release()
-        return p.content
+        return p.seq, p.content
 
     def searchFromBack(self, seq):
         # Find first node s.t. node.seq <= seq

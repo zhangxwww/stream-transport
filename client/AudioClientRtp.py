@@ -47,7 +47,7 @@ class AudioClientRtp(ClientRtp):
                     if currentSeqNbr > self.seqNum:
                         # TODO check it later
                         self.seqNum = currentSeqNbr
-                        self.lastFrameNbr = rtpPacket.timestamp()
+                        lastFrameNbr = rtpPacket.timestamp()
                         byte = rtpPacket.getPayload()
                         byteStream.write(byte)
                     if marker == 1:
@@ -57,14 +57,16 @@ class AudioClientRtp(ClientRtp):
                 except AttributeError:
                     break
             chunk = byteStream.getbuffer()
-            self.buffer.put(self.lastFrameNbr, chunk)
+            self.buffer.put(lastFrameNbr, chunk)
 
     def display(self):
-        chunk = self.buffer.get()
+        seq, chunk = self.buffer.get()
         if chunk is None:
-            self._display_interval.wait(self.interval)
+            #self._display_interval.wait(self.interval)
+            pass
         else:
             self.out.write(chunk)
+            self.lastFrameNbr = seq
 
     def setFrameRate(self, fs):
         self.fs = fs
