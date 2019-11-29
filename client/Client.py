@@ -28,6 +28,7 @@ class Client:
         self.muteButton = None
         self.forwardButton = None
         self.backwardButton = None
+        self.speedButton = None
 
         self.videoTime = 0
 
@@ -85,6 +86,11 @@ class Client:
         self.forwardButton["text"] = "+30s"
         self.forwardButton["command"] = self.forward
         self.forwardButton.grid(row=0, column=3, padx=2, pady=2)
+
+        self.speedButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.speedButton["text"] = "2x"
+        self.speedButton["command"] = self.speedup
+        self.speedButton.grid(row=0, column=4, padx=2, pady=2)
 
         self.muteButton = Button(buttonArea, width=10, padx=3, pady=3)
         self.muteButton["text"] = "Mute"
@@ -208,6 +214,16 @@ class Client:
 
     def backward(self):
         self.rtspController.forward(-30)
+
+    def speedup(self):
+        self.speedButton['text'] = '1x'
+        self.speedButton['command'] = self.speedDown
+        self.rtspController.speed(2)
+
+    def speedDown(self):
+        self.speedButton['text'] = '2x'
+        self.speedButton['command'] = self.speedup
+        self.rtspController.speed(1)
 
     def updateVideo(self, frame):
         self.displayLabel.configure(image=frame, height=270)

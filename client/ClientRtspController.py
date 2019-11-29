@@ -130,6 +130,10 @@ class ClientRtspController:
         time.sleep(0.2)
         self.play(pos)
 
+    def speed(self, level):
+        self.sendRtspRequest(self.SET_PARAMETER, speed=level)
+        self.audioRtp.clearBuffer()
+
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
 
@@ -189,6 +193,8 @@ class ClientRtspController:
                 request = request + '\nalign: ' + str(kwargs['align'])
             elif 'level' in kwargs.keys():
                 request = request + '\nlevel: ' + str(kwargs['level'])
+            elif 'speed' in kwargs.keys():
+                request = request + '\nspeed: ' + str(kwargs['speed'])
             else:
                 return
         else:

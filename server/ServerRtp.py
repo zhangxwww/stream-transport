@@ -27,6 +27,8 @@ class ServerRtp(threading.Thread):
 
         self.is_start = False
 
+        self.doubleSpeed = False
+
     def initSocket(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -71,3 +73,9 @@ class ServerRtp(threading.Thread):
 
     def beforeRun(self):
         raise NotImplementedError
+
+    def speed(self, speed):
+        if speed == 1:
+            self.doubleSpeed = False
+        elif speed == 2:
+            self.doubleSpeed = True

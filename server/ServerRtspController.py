@@ -93,6 +93,10 @@ class ServerRtspController:
                 level = int(value)
                 self.videoRtp.setQuality(level)
                 self.sendSetParameterResponse(seq)
+            elif key == 'speed':
+                speed = int(value)
+                self.videoRtp.speed(speed)
+                self.audioRtp.speed(speed)
         else:
             return
 
@@ -200,21 +204,6 @@ class ServerRtspController:
         if not self.videoRtp.is_start:
             self.videoRtp.start()
             self.audioRtp.start()
-        '''
-        if pos is not None:
-            self.videoRtp.pause()
-            self.videoRtp.setPosition(pos)
-            self.videoRtp.resume()
-            self.audioRtp.pause()
-            self.audioRtp.setPosition(pos)
-            self.audioRtp.resume()
-        elif self.videoRtp.is_start:
-            self.videoRtp.resume()
-            self.audioRtp.resume()
-        else:
-            self.videoRtp.start()
-            self.audioRtp.start()
-        '''
 
     def pause(self):
         self.videoRtp.pause()

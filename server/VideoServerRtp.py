@@ -43,9 +43,11 @@ class VideoServerRtp(ServerRtp):
                 return
             # print(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
             res, frame = self.cap.read()
-            frame = cv2.resize(frame, self.quality)
+            if self.doubleSpeed:
+                res, frame = self.cap.read()
             if not res:
                 return
+            frame = cv2.resize(frame, self.quality)
             encode = cv2.imencode('.jpg', frame)
             if not encode[0]:
                 return
