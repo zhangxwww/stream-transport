@@ -26,6 +26,8 @@ class Client:
         self.delayButton = None
         self.qualityButton = None
         self.muteButton = None
+        self.forwardButton = None
+        self.backwardButton = None
 
         self.videoTime = 0
 
@@ -72,7 +74,17 @@ class Client:
         self.start_pause = Button(buttonArea, width=20, padx=3, pady=3)
         self.start_pause["text"] = "Play"
         self.start_pause["command"] = self.play
-        self.start_pause.grid(row=0, column=0, columnspan=2, padx=2, pady=2)
+        self.start_pause.grid(row=0, column=1, columnspan=2, padx=2, pady=2)
+
+        self.backwardButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.backwardButton["text"] = "-30s"
+        self.backwardButton["command"] = self.backward
+        self.backwardButton.grid(row=0, column=0, padx=2, pady=2)
+
+        self.forwardButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.forwardButton["text"] = "+30s"
+        self.forwardButton["command"] = self.forward
+        self.forwardButton.grid(row=0, column=3, padx=2, pady=2)
 
         self.muteButton = Button(buttonArea, width=10, padx=3, pady=3)
         self.muteButton["text"] = "Mute"
@@ -151,8 +163,6 @@ class Client:
         self.fileListBox.bind('<Double-Button-1>', self.doubleClickFileListBoxHandler)
 
     def describe(self, filename):
-        # self.start_pause['text'] = 'Loading ...'
-        # self.start_pause['command'] = None
         self.rtspController.describe(filename)
 
     def setup(self):
@@ -193,6 +203,12 @@ class Client:
         self.muteButton['text'] = 'Voice'
         self.rtspController.mute()
 
+    def forward(self):
+        self.rtspController.forward(30)
+
+    def backward(self):
+        self.rtspController.forward(-30)
+
     def updateVideo(self, frame):
         self.displayLabel.configure(image=frame, height=270)
         self.displayLabel.image = frame
@@ -219,7 +235,7 @@ class Client:
 
     def releaseScaleHandler(self, _):
         pos = self.scale.get()
-        self.rtspController.play(pos=pos)
+        self.rtspController.play(pos=int(pos))
 
     def enterEntryHandler(self, _):
         info = self.searchVar.get()
@@ -263,8 +279,6 @@ class Client:
         def setupCallback():
             self.updateCurrentTimeLabel()
             self.updateTotalTimeLabel()
-            # self.start_pause['text'] = 'Play'
-            # self.start_pause['command'] = self.play
             self.play()
 
         def playCallback():

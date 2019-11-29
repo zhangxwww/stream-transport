@@ -66,8 +66,8 @@ class AudioClientRtp(ClientRtp):
 
     def display(self):
         seq, chunk = self.buffer.get()
-        chunk = chunk * self.volume
         if chunk is not None:
+            chunk = chunk * self.volume
             self.out.write(chunk.tobytes())
             self.lastFrameNbr = seq
 

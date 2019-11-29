@@ -1,6 +1,6 @@
 import socket
 import threading
-
+import time
 from client.VideoClientRtp import VideoClientRtp
 from client.AudioClientRtp import AudioClientRtp
 
@@ -113,6 +113,16 @@ class ClientRtspController:
 
     def mute(self):
         self.audioRtp.mute()
+
+    def forward(self, seconds):
+        current = self.getCurrentTime()
+        aim = current + seconds
+        pos = int(aim / self.getTotalTime() * 1000)
+        pos = max(0, pos)
+        pos = min(1000, pos)
+        self.pause()
+        time.sleep(0.2)
+        self.play(pos)
 
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
