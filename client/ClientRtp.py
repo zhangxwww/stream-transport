@@ -42,7 +42,7 @@ class ClientRtp(threading.Thread):
 
     def run(self):
         self.beforeRun()
-        self._display_interval.wait(1)
+        self._display_interval.wait(0.1)
         while self._stopper.is_set():
             self.running()
             self._display_interval.wait(self.interval)

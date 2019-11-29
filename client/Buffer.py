@@ -51,6 +51,13 @@ class BufferQueue:
             node = node.prev
         return node
 
+    def clear(self):
+        self.lock.acquire()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+        self.length = 0
+        self.lock.release()
+
 
 if __name__ == '__main__':
     def test():

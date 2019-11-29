@@ -14,9 +14,9 @@ class AudioServerRtp(ServerRtp):
 
         self.audio = None
 
-        self.chunkSize = 0
+        self.chunkSize = 0 # n frames
         self.fs = 0
-        self.chunkLength = 0
+        self.chunkLength = 0 # Seconds
 
         self.currentChunk = 0
         self.totalChunks = 0
@@ -91,3 +91,9 @@ class AudioServerRtp(ServerRtp):
     def setPosition(self, pos):
         # pos: .%
         self.currentChunk = int(self.totalChunks * pos / 1000)
+
+    def align(self, align):
+        # align: seconds
+        deltaChunk = int(align / self.chunkLength)
+        print(deltaChunk)
+        self.currentChunk += deltaChunk

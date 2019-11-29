@@ -31,6 +31,7 @@ class VideoClientRtp(ClientRtp):
         while self._stopper.is_set():
             rtpPacket = RtpPacket()
             byteStream = BytesIO(b'')
+            lastFrameNbr = -1
             while True:
                 try:
                     data = self.socket.recv(BUF_SIZE)
@@ -55,6 +56,8 @@ class VideoClientRtp(ClientRtp):
                     break
             frame = self.decode(byteStream)
             byteStream.close()
+            if lastFrameNbr == -1:
+                continue
             self.buffer.put(lastFrameNbr, frame)
 
     @staticmethod
@@ -73,10 +76,7 @@ class VideoClientRtp(ClientRtp):
 
     def display(self):
         seq, frame = self.buffer.get()
-        if frame is None:
-            #self._display_interval.wait(self.interval)
-            pass
-        else:
+        if frame is not None:
             self.lastFrameNbr = seq
             self.displayCallback(frame)
 

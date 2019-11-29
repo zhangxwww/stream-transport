@@ -83,6 +83,10 @@ class ServerRtspController:
             self.pause()
             self.sendTearDownResponse(seq)
             self.teardown()
+        elif command == 'SET_PARAMETER':
+            align = float(lines[3].split(' ')[-1])
+            self.audioAlign(align)
+            self.sendSetParameterResponse(seq)
         else:
             return
 
@@ -127,6 +131,13 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def sendTearDownResponse(self, seq):
+        response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
+            'seqNum': seq,
+            'session': self.sessionid
+        })
+        self.rtspSocket.send(response.encode())
+
+    def sendSetParameterResponse(self, seq):
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
@@ -205,3 +216,6 @@ class ServerRtspController:
         if self.cap is not None:
             self.cap.release()
             self.cap = None
+
+    def audioAlign(self, align):
+        self.audioRtp.align(align)

@@ -35,6 +35,7 @@ class AudioClientRtp(ClientRtp):
         while self._stopper.is_set():
             rtpPacket = RtpPacket()
             byteStream = BytesIO(b'')
+            lastFrameNbr = -1
             while True:
                 try:
                     data = self.socket.recv(BUF_SIZE)
@@ -57,6 +58,8 @@ class AudioClientRtp(ClientRtp):
                 except AttributeError:
                     break
             chunk = byteStream.getbuffer()
+            if lastFrameNbr == -1:
+                continue
             self.buffer.put(lastFrameNbr, chunk)
 
     def display(self):
@@ -70,3 +73,6 @@ class AudioClientRtp(ClientRtp):
 
     def setFrameRate(self, fs):
         self.fs = fs
+
+    def clearBuffer(self):
+        self.buffer.clear()

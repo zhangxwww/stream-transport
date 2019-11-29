@@ -103,6 +103,7 @@ class ClientRtspController:
     def audioTrackAlign(self, seconds):
         # positive seconds for advance, and negative seconds for delay
         self.sendRtspRequest(self.SET_PARAMETER, align=seconds)
+        self.audioRtp.clearBuffer()
 
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
