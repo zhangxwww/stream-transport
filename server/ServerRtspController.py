@@ -189,8 +189,19 @@ class ServerRtspController:
         self.audioRtp.setAudio(self.audioClip, self.info['video']['length'] / fs, fs)
 
     def play(self, pos):
+        # pos: .%
         if pos is not None:
-            # pos: .%
+            self.videoRtp.pause()
+            self.videoRtp.setPosition(pos)
+            self.audioRtp.pause()
+            self.audioRtp.setPosition(pos)
+        self.videoRtp.resume()
+        self.audioRtp.resume()
+        if not self.videoRtp.is_start:
+            self.videoRtp.start()
+            self.audioRtp.start()
+        '''
+        if pos is not None:
             self.videoRtp.pause()
             self.videoRtp.setPosition(pos)
             self.videoRtp.resume()
@@ -203,6 +214,7 @@ class ServerRtspController:
         else:
             self.videoRtp.start()
             self.audioRtp.start()
+        '''
 
     def pause(self):
         self.videoRtp.pause()

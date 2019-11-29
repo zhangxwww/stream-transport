@@ -50,6 +50,8 @@ class ClientRtspController:
         self.warningBox = None
         self.recvCallback = None
 
+        self.memory = {}
+
     def connectToServer(self):
         """Connect to the Server. Start a new RTSP/TCP session."""
         self.rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -88,12 +90,16 @@ class ClientRtspController:
             self.audioRtp.setDaemon(True)
             self.audioRtp.start()
             if pos is None:
-                self.sendRtspRequest(self.PLAY)
+                if self.filename not in self.memory.keys():
+                    self.sendRtspRequest(self.PLAY)
+                else:
+                    self.sendRtspRequest(self.PLAY, pos=self.memory[self.filename])
             else:
                 self.sendRtspRequest(self.PLAY, pos=pos)
 
     def pause(self):
         if self.state == self.PLAYING:
+            self.memory[self.filename] = self.getCurrentPosition()
             self.sendRtspRequest(self.PAUSE)
 
     def teardown(self):
@@ -278,7 +284,7 @@ class ClientRtspController:
         self.warningBox = box
 
     def getCurrentPosition(self):
-        return self.videoRtp.getPostion() / self.videoLength
+        return int(self.videoRtp.getPosition() / self.videoLength * 1000)
 
     def getCurrentTime(self):
         return int(self.videoRtp.getPosition() / self.videoFrameRate)
