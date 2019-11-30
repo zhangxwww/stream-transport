@@ -6,12 +6,18 @@ from client.AudioClientRtp import AudioClientRtp
 
 
 class ClientRtspController:
+    """
+    Controls the RTSP connection, and the RTP streams
+    """
+
+    # State
     INIT = 0
     PREPARE = 1
     READY = 2
     PLAYING = 3
     state = INIT
 
+    # RTSP command
     DESCRIBE = 0
     SETUP = 1
     PLAY = 2
@@ -19,6 +25,7 @@ class ClientRtspController:
     TEARDOWN = 4
     SET_PARAMETER = 5
 
+    # Video quality
     BLUR = 0
     HD = 1
 
@@ -29,6 +36,7 @@ class ClientRtspController:
         self.videoRtpPort = 0
         self.audioRtpPort = 0
 
+        # Callback function to update the video
         self.updateVideo = None
 
         self.rtspSeq = 0
@@ -38,10 +46,12 @@ class ClientRtspController:
 
         self.rtspSocket = None
 
+        # Video RTP stream
         self.videoRtp = None
         self.videoLength = 0
         self.videoFrameRate = 0
 
+        # Audio RTP stream
         self.audioRtp = None
         self.audioFrameRate = 0
 
@@ -50,10 +60,13 @@ class ClientRtspController:
         self.warningBox = None
         self.recvCallback = None
 
+        # Record the position of each file
         self.memory = {}
 
     def connectToServer(self):
-        """Connect to the Server. Start a new RTSP/TCP session."""
+        """
+        Connect to the Server. Start a new RTSP/TCP session.
+        """
         self.rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.rtspSocket.connect((self.serverAddr, self.serverPort))
@@ -68,16 +81,28 @@ class ClientRtspController:
         self.updateVideo = callback
 
     def describe(self, filename):
+        """
+        Send DESCRIBE request
+        :param filename: the file to describe
+        """
         if self.state == self.INIT:
             self.filename = filename
             self.sendRtspRequest(self.DESCRIBE)
 
     def setup(self):
+        """
+        Send SETUP request
+        """
         if self.state == self.PREPARE:
             self.sendRtspRequest(self.SETUP)
 
     def play(self, pos=None):
+        """
+        Send PLAY request
+        :param pos: the start position, None means from 0
+        """
         if self.state == self.READY:
+            # Stop and restart the RTP streams
             self.stopRtp()
             self.openRtpPort()
 
@@ -98,29 +123,52 @@ class ClientRtspController:
                 self.sendRtspRequest(self.PLAY, pos=pos)
 
     def pause(self):
+        """
+        Send PAUSE request
+        """
         if self.state == self.PLAYING:
+            # Record the position of current file
             self.memory[self.filename] = self.getCurrentPosition()
             self.sendRtspRequest(self.PAUSE)
 
     def teardown(self):
+        """
+        Send TEARDOWN request
+        """
         self.sendRtspRequest(self.TEARDOWN)
 
     def stop(self):
+        """
+        Stop current video
+        """
         self.pause()
         self.state = self.INIT
 
     def audioTrackAlign(self, seconds):
-        # positive seconds for advance, and negative seconds for delay
+        """
+        Advance / delay the audio track
+        :param seconds: positive for advance, and negative for delay
+        """
         self.sendRtspRequest(self.SET_PARAMETER, align=seconds)
         self.audioRtp.clearBuffer()
 
     def quality(self, level):
+        """
+        Change video quality
+        :param level: 0 for BLUR and 1 for HD
+        """
         self.sendRtspRequest(self.SET_PARAMETER, level=level)
 
     def mute(self):
+        """
+        Mute the audio
+        """
         self.audioRtp.mute()
 
     def forward(self, seconds):
+        """
+        Forward the video, negative seconds for backward
+        """
         current = self.getCurrentTime()
         aim = current + seconds
         pos = int(aim / self.getTotalTime() * 1000)
@@ -131,15 +179,25 @@ class ClientRtspController:
         self.play(pos)
 
     def speed(self, level):
+        """
+        Change the speed
+        :param level: 1 or 2
+        """
         self.sendRtspRequest(self.SET_PARAMETER, speed=level)
         self.audioRtp.clearBuffer()
 
     def setScreenSize(self, size):
+        """
+        Set screen size, related to full screen mode
+        :param size: (width, height), -1 is allowed
+        """
         self.videoRtp.clearBuffer()
         self.videoRtp.setScreenSize(size)
 
     def sendRtspRequest(self, requestCode, **kwargs):
-        """Send RTSP request to the server."""
+        """
+        Send RTSP request to the server.
+        """
 
         # Describe request
         if requestCode == self.DESCRIBE and self.state == self.INIT:
@@ -210,7 +268,9 @@ class ClientRtspController:
         print('\nData sent:\n' + request)
 
     def recvRtspReply(self):
-        """Receive RTSP reply from the server."""
+        """
+        Receive RTSP reply from the server.
+        """
         while True:
             try:
                 reply = self.rtspSocket.recv(4096)

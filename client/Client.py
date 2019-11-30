@@ -7,11 +7,17 @@ from client.FileExplorer import FileExplorer
 
 
 class Client:
+    """
+    Client GUI
+    """
     def __init__(self, serveraddr, serverport):
+        # controls the RTSP
         self.rtspController = None
+        # used to search files on the server
         self.fileExplorer = None
 
         self.master = None
+        # widgets
         self.start_pause = None
         self.displayLabel = None
         self.scale = None
@@ -31,14 +37,19 @@ class Client:
         self.speedButton = None
         self.fullScreenButton = None
 
+        # full screen
         self.topLevel = None
         self.topLevelLabel = None
 
+        # total time of the video
         self.videoTime = 0
 
+        # video files available on the server
         self.filenames = []
 
+        # functions called when receive RTSP response
         self.recvRtspCallback = {}
+
         self.init(serveraddr, serverport)
 
         self.master.mainloop()
@@ -178,63 +189,112 @@ class Client:
         self.fileListBox.bind('<Double-Button-1>', self.doubleClickFileListBoxHandler)
 
     def describe(self, filename):
+        """
+        Get description of filename
+        """
         self.rtspController.describe(filename)
 
     def setup(self):
+        """
+        Setup the connection
+        """
         self.rtspController.setup()
 
     def play(self):
+        """
+        Play the video
+        """
         self.rtspController.play()
         self.start_pause["text"] = "Pause"
         self.start_pause["command"] = self.pause
 
     def pause(self):
+        """
+        Pause the video
+        """
         self.rtspController.pause()
         self.start_pause["text"] = "Play"
         self.start_pause["command"] = self.play
 
     def teardown(self):
+        """
+        Teardown the connection
+        """
         self.rtspController.teardown()
         self.fileExplorer.close()
         self.master.destroy()
 
     def delay(self):
+        """
+        Audio delay by 0.5 secs
+        """
         self.rtspController.audioTrackAlign(-0.5)
 
     def advance(self):
+        """
+        Audio advance by 0.5 secs
+        """
         self.rtspController.audioTrackAlign(0.5)
 
     def blur(self):
+        """
+        Change the quality of the video to blur
+        """
         self.qualityButton['text'] = 'Normal'
         self.qualityButton['command'] = self.highDefinition
         self.rtspController.quality(self.rtspController.BLUR)
 
     def highDefinition(self):
+        """
+        Change the quality of the video to HD
+        """
         self.qualityButton['text'] = 'Blur'
         self.qualityButton['command'] = self.blur
         self.rtspController.quality(self.rtspController.HD)
 
     def mute(self):
-        self.muteButton['text'] = 'Voice'
+        """
+        Mute the voice
+        """
+        if self.muteButton['text'] == 'Mute':
+            self.muteButton['text'] = 'Voice'
+        else:
+            self.muteButton['text'] = 'Mute'
         self.rtspController.mute()
 
     def forward(self):
+        """
+        Forward the video by 30 secs
+        """
         self.rtspController.forward(30)
 
     def backward(self):
+        """
+        Backward the video by 30 secs
+        """
         self.rtspController.forward(-30)
 
     def speedup(self):
+        """
+        2x speed of the video
+        """
         self.speedButton['text'] = '1x'
         self.speedButton['command'] = self.speedDown
         self.rtspController.speed(2)
 
     def speedDown(self):
+        """
+        1x speed of the video
+        """
+        self.speedButton['text'] = '1x'
         self.speedButton['text'] = '2x'
         self.speedButton['command'] = self.speedup
         self.rtspController.speed(1)
 
     def fullScreen(self):
+        """
+        Full screen mode
+        """
         self.topLevel = tkinter.Toplevel(self.master)
         self.topLevel.attributes('-fullscreen', True)
         self.topLevelLabel = tkinter.Label(self.topLevel)
@@ -245,6 +305,9 @@ class Client:
         self.rtspController.setScreenSize((self.topLevel.winfo_width(), -1))
 
     def exitFullScreen(self, _):
+        """
+        Exit full screen mode
+        """
         self.topLevel.destroy()
         self.topLevel = None
         self.topLevelLabel = None
@@ -252,6 +315,10 @@ class Client:
         self.master.update()
 
     def updateVideo(self, frame):
+        """
+        Call back function, used to update the image of the display label
+        :param frame: ImageTk.PhotoImage
+        """
         self.displayLabel.configure(image=frame, height=270, width=480)
         self.displayLabel.image = frame
         if self.topLevelLabel is not None:
@@ -259,6 +326,9 @@ class Client:
             self.topLevelLabel.image = frame
 
     def updateTimeLabelThread(self):
+        """
+        Update current time every 1 sec in another thread
+        """
         wait = threading.Event()
         while True:
             try:
@@ -269,6 +339,9 @@ class Client:
             wait.wait(1)
 
     def exitHandler(self):
+        """
+        Callback when exit
+        """
         self.rtspController.pause()
         if tkinter.messagebox.askokcancel("Quit?", "Are you sure you want to quit?"):
             self.teardown()
@@ -276,22 +349,37 @@ class Client:
             self.rtspController.play()
 
     def clickScaleHandler(self, _):
+        """
+        Callback when click the scale bar, pause the video
+        """
         self.rtspController.pause()
 
     def releaseScaleHandler(self, _):
+        """
+        Callback when release the scale bar, reposition to corresponding position
+        """
         pos = self.scale.get()
         self.rtspController.play(pos=int(pos))
 
     def enterEntryHandler(self, _):
+        """
+        Callback when ENTER pressed, request for the file list
+        """
         info = self.searchVar.get()
         threading.Thread(target=self.fileExplorer.search, args=(info,), daemon=True).start()
 
     def doubleClickFileListBoxHandler(self, _):
+        """
+        Callback when double click on one of the file list item, start playing corresponding video
+        """
         self.rtspController.stop()
         index = self.fileListBox.curselection()[0]
         self.describe(self.filenames[index])
 
     def updateCurrentTimeLabel(self):
+        """
+        Update current time
+        """
         currentTime = self.rtspController.getCurrentTime()
         self.setTimeLabel(
             self.currentTimeLabelStringVar,
@@ -300,6 +388,9 @@ class Client:
         return currentTime
 
     def updateTotalTimeLabel(self):
+        """
+        Get the total time and update the label
+        """
         totalTime = self.rtspController.getTotalTime()
         self.setTimeLabel(
             self.totalTimeLabelStringVar,
@@ -309,12 +400,19 @@ class Client:
         return totalTime
 
     def updateFileListBoxCallback(self, li):
+        """
+        Callback to update the file list
+        :param li: file list
+        """
         self.fileListBox.delete(0, 'end')
         for l in li:
             self.fileListBox.insert('end', l.strip())
         self.filenames = li[:]
 
     def rtspRecvCallback(self):
+        """
+        Callback when receive RTSP response
+        """
         self.recvRtspCallback[self.rtspController.requestSent]()
 
     def getRtspRecvCallbackOfEachState(self):
@@ -344,6 +442,11 @@ class Client:
         }
 
     def setTimeLabel(self, stringVar, t):
+        """
+        Update the time label by given time
+        :param stringVar: StringVar of Label
+        :param t: second
+        """
         t = self.getHourMinuteSecond(t)
         timeString = '{hour}:{minute}:{second}'.format(**{
             'hour': t[0],
@@ -364,7 +467,9 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
+    # Server host
     parser.add_argument('--host', type=str, default='127.0.0.1')
+    # Server RTSP port
     parser.add_argument('--port', type=int, default=554)
 
     args = vars(parser.parse_args())
