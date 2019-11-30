@@ -4,7 +4,7 @@ import os
 import json
 
 BUF_SIZE = 2048
-VALID_EXTENSION = ['.mp4']
+VALID_EXTENSION = ['.mp4', '.avi', '.mkv', '.mov', '.mpg', '.Ogg', '.wmv']
 
 class SearchEngine:
     def __init__(self, host, port, workingDir):
