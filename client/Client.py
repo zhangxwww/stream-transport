@@ -60,23 +60,23 @@ class Client:
         self.master = tkinter.Tk()
         self.master.protocol('WM_DELETE_WINDOW', self.exitHandler)
 
-        leftFrame = tkinter.Frame(self.master, width=30, height=30, bg='pink')
+        leftFrame = tkinter.Frame(self.master, width=30, height=30)
         leftFrame.grid(row=0, column=0, padx=2, pady=2)
 
-        rightFrame = tkinter.Frame(self.master, width=30, height=30, bg='black')
+        rightFrame = tkinter.Frame(self.master, width=30, height=30)
         rightFrame.grid(row=0, column=1, padx=2, pady=2)
 
-        displayArea = tkinter.Frame(leftFrame, width=26, height=21, bg='yellow')
+        displayArea = tkinter.Frame(leftFrame, width=26, height=21)
         displayArea.grid(row=0, column=0, padx=1, pady=1)
 
-        scaleArea = tkinter.Frame(leftFrame, width=26, height=5, bg='blue')
+        scaleArea = tkinter.Frame(leftFrame, width=26, height=5)
         scaleArea.grid(row=1, column=0, padx=1, pady=1)
 
-        buttonArea = tkinter.Frame(leftFrame, width=26, height=5, bg='red')
+        buttonArea = tkinter.Frame(leftFrame, width=26, height=5)
         buttonArea.grid(row=2, column=0, padx=1, pady=1)
 
         # Create Play button
-        self.start_pause = Button(buttonArea, width=20, padx=3, pady=3)
+        self.start_pause = Button(buttonArea, width=22, padx=3, pady=3)
         self.start_pause["text"] = "Play"
         self.start_pause["command"] = self.play
         self.start_pause.grid(row=0, column=1, columnspan=2, padx=2, pady=2)
@@ -163,11 +163,11 @@ class Client:
 
         self.searchVar = tkinter.StringVar()
         self.searchEntry = tkinter.Entry(rightFrame, textvariable=self.searchVar)
-        self.searchEntry.grid(row=0, column=0, padx=2, pady=2)
+        self.searchEntry.grid(row=0, column=0, padx=2, pady=2, sticky=W)
         self.searchEntry.bind('<Key-KP_Enter>', self.enterEntryHandler)
         self.searchEntry.bind('<Key-Return>', self.enterEntryHandler)
 
-        listFrame = tkinter.Frame(rightFrame, width=30, height=30, bg='pink')
+        listFrame = tkinter.Frame(rightFrame, width=30, height=30)
         listFrame.grid(row=1, column=0, padx=2, pady=2)
 
         fileListScroll = tkinter.Scrollbar(listFrame)
@@ -235,7 +235,7 @@ class Client:
         self.rtspController.speed(1)
 
     def fullScreen(self):
-        self.topLevel = tkinter.Toplevel(self.master, bg='blue')
+        self.topLevel = tkinter.Toplevel(self.master)
         self.topLevel.attributes('-fullscreen', True)
         self.topLevelLabel = tkinter.Label(self.topLevel)
         self.topLevelLabel.grid(row=0, column=0, sticky=W + E + N + S, padx=0, pady=0)
