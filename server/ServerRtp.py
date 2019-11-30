@@ -3,12 +3,10 @@ import threading
 
 
 class ServerRtp(threading.Thread):
-    def __init__(self, addr, port, *args, **kwargs):
+    def __init__(self, addr, *args, **kwargs):
         super(ServerRtp, self).__init__(*args, **kwargs)
 
         self.addr = addr
-        # TODO check it later
-        self.port = port
 
         self.socket = None
         self.initSocket()

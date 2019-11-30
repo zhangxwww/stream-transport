@@ -181,13 +181,13 @@ class ServerRtspController:
         }
 
     def setup(self):
-        self.videoRtp = VideoServerRtp(self.addr, self.rtpPort)
+        self.videoRtp = VideoServerRtp(self.addr)
         self.videoRtp.setClientInfo(self.clientAddr, self.clientVideoRtpPort)
         self.videoRtp.setSsrc(self.ssrc)
         self.videoRtp.setCapture(self.cap)
 
         fs = self.info['video']['framerate']
-        self.audioRtp = AudioServerRtp(self.addr, self.rtpPort + 2)
+        self.audioRtp = AudioServerRtp(self.addr)
         self.audioRtp.setClientInfo(self.clientAddr, self.clientVideoRtpPort + 2)
         self.audioRtp.setSsrc(self.ssrc)
         self.audioRtp.setAudio(self.audioClip, self.info['video']['length'] / fs, fs)

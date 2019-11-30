@@ -135,6 +135,7 @@ class ClientRtspController:
         self.audioRtp.clearBuffer()
 
     def setScreenSize(self, size):
+        self.videoRtp.clearBuffer()
         self.videoRtp.setScreenSize(size)
 
     def sendRtspRequest(self, requestCode, **kwargs):

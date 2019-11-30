@@ -238,7 +238,7 @@ class Client:
         self.topLevel = tkinter.Toplevel(self.master, bg='blue')
         self.topLevel.attributes('-fullscreen', True)
         self.topLevelLabel = tkinter.Label(self.topLevel)
-        self.topLevelLabel.grid(row=0, column=0, sticky=W + E + N + S, padx=5, pady=5)
+        self.topLevelLabel.grid(row=0, column=0, sticky=W + E + N + S, padx=0, pady=0)
         self.topLevel.focus_set()
         self.topLevel.bind('<Key-Escape>', self.exitFullScreen)
         self.topLevel.update()

@@ -34,6 +34,7 @@ class VideoClientRtp(ClientRtp):
             rtpPacket = RtpPacket()
             byteStream = BytesIO(b'')
             lastFrameNbr = -1
+            packetBuffer = BufferQueue()
             while True:
                 try:
                     data = self.socket.recv(BUF_SIZE)
@@ -43,13 +44,16 @@ class VideoClientRtp(ClientRtp):
                     marker = rtpPacket.marker()
                     currentSeqNbr = rtpPacket.seqNum()
 
-                    if currentSeqNbr > self.seqNum:
-                        # TODO assume in order
-                        self.seqNum = currentSeqNbr
-                        lastFrameNbr = rtpPacket.timestamp()
-                        byte = rtpPacket.getPayload()
-                        byteStream.write(byte)
+                    lastFrameNbr = rtpPacket.timestamp()
+                    byte = rtpPacket.getPayload()
+                    packetBuffer.put(currentSeqNbr, byte)
+
                     if marker == 1:
+                        while True:
+                            seq, byte = packetBuffer.get()
+                            if byte is None:
+                                break
+                            byteStream.write(byte)
                         break
                 except IOError:
                     continue
@@ -91,3 +95,6 @@ class VideoClientRtp(ClientRtp):
             self.screenSize = (int(size[0]), int(size[0] * 9 / 16))
         else:
             self.screenSize = (int(size[0]), int(size[1]))
+
+    def clearBuffer(self):
+        self.buffer.clear()

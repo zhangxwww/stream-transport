@@ -11,8 +11,8 @@ BLUR = 0
 HD = 1
 
 class VideoServerRtp(ServerRtp):
-    def __init__(self, addr, port, *args, **kwargs):
-        super(VideoServerRtp, self).__init__(addr, port, *args, **kwargs)
+    def __init__(self, addr, *args, **kwargs):
+        super(VideoServerRtp, self).__init__(addr, *args, **kwargs)
 
         self.currentFrame = 0
         self.totalLength = 0
