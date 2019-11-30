@@ -71,6 +71,7 @@ class Client:
         """Build GUI."""
         self.master = tkinter.Tk()
         self.master.protocol('WM_DELETE_WINDOW', self.exitHandler)
+        self.master.title('Loading ...')
 
         leftFrame = tkinter.Frame(self.master, width=30, height=30)
         leftFrame.grid(row=0, column=0, padx=2, pady=2)
@@ -373,6 +374,7 @@ class Client:
         """
         Callback when double click on one of the file list item, start playing corresponding video
         """
+        self.master.title('Loading ...')
         self.rtspController.stop()
         index = self.fileListBox.curselection()[0]
         self.describe(self.filenames[index])
@@ -409,6 +411,7 @@ class Client:
         for l in li:
             self.fileListBox.insert('end', l.strip())
         self.filenames = li[:]
+        self.master.title('Stream transport by Zhang Xinwei')
 
     def rtspRecvCallback(self):
         """
@@ -424,6 +427,7 @@ class Client:
             self.updateCurrentTimeLabel()
             self.updateTotalTimeLabel()
             self.play()
+            self.master.title('Stream transport by Zhang Xinwei')
 
         def playCallback():
             self.updateCurrentTimeLabel()
