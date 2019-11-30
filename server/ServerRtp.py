@@ -3,31 +3,43 @@ import threading
 
 
 class ServerRtp(threading.Thread):
+    """
+    Base class of the RTP stream controller
+    """
+
     def __init__(self, addr, *args, **kwargs):
         super(ServerRtp, self).__init__(*args, **kwargs)
 
+        # addr of the server
         self.addr = addr
 
         self.socket = None
         self.initSocket()
 
+        # used to control pause, resume, stop etc.
         self._pause = threading.Event()
         self._pause.set()
         self._stopper = threading.Event()
         self._stopper.set()
         self._send_interval = threading.Event()
 
+        # default interval to send
         self.interval = 0.04
         self.ssrc = 0
 
         self.clientAddr = None
         self.clientPort = None
 
+        # whether has started
         self.is_start = False
 
+        # 2x speed or not
         self.doubleSpeed = False
 
     def initSocket(self):
+        """
+        Init the RTP socket on UDP
+        """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def closeSocket(self):
@@ -45,6 +57,9 @@ class ServerRtp(threading.Thread):
         self.ssrc = ssrc
 
     def run(self):
+        """
+        Start
+        """
         self.is_start = True
         self.beforeRun()
         while self.sendCondition() and self._stopper.is_set():
@@ -54,14 +69,35 @@ class ServerRtp(threading.Thread):
         self.closeSocket()
 
     def pause(self):
+        """
+        Pause the thread
+        """
         self._pause.clear()
 
     def resume(self):
+        """
+        Resume the thread
+        """
         self._pause.set()
 
     def stop(self):
+        """
+        Stop the thread
+        """
         self._pause.set()
         self._stopper.clear()
+
+    def speed(self, speed):
+        """
+        Change the speed
+        :param speed: 1 or 2
+        """
+        if speed == 1:
+            self.doubleSpeed = False
+        elif speed == 2:
+            self.doubleSpeed = True
+
+    """ Hook functions """
 
     def sendCondition(self):
         raise NotImplementedError
@@ -71,9 +107,3 @@ class ServerRtp(threading.Thread):
 
     def beforeRun(self):
         raise NotImplementedError
-
-    def speed(self, speed):
-        if speed == 1:
-            self.doubleSpeed = False
-        elif speed == 2:
-            self.doubleSpeed = True

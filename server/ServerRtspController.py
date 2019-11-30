@@ -10,6 +10,10 @@ from server.AudioServerRtp import AudioServerRtp
 
 
 class ServerRtspController:
+    """
+    RTSP controller, and controls RTP stream
+    """
+
     def __init__(self, rtspSocket, addr, port, clientAddr, videoDir):
         self.rtspSocket = rtspSocket
         self.addr = addr
@@ -20,27 +24,38 @@ class ServerRtspController:
 
         self.clientVideoRtpPort = 0
 
+        # the selected filename
         self.filename = ''
+        # video info
         self.info = None
 
         self.ssrc = 0
         self.sessionid = 0
 
+        # the video and the audio
         self.cap = None
         self.audioClip = None
 
+        # where are the videos
         self.videoDir = videoDir
 
+        # RTP for the video and audio
         self.videoRtp = None
         self.audioRtp = None
 
         self.init()
 
     def init(self):
+        """
+        Generate random int for ssrc and sessionid
+        """
         self.ssrc = random.randint(1, 99999)
         self.sessionid = random.randint(1, 99999)
 
     def start(self):
+        """
+        Receive and handle request
+        """
         while self.rtspSocket is not None:
             request = self.recvRtspRequest()
             print('\nRequest:')
@@ -51,6 +66,9 @@ class ServerRtspController:
         self.teardown()
 
     def recvRtspRequest(self):
+        """
+        Try to receive request
+        """
         try:
             request = self.rtspSocket.recv(2048).decode('utf-8')
         except ConnectionResetError:
@@ -58,16 +76,21 @@ class ServerRtspController:
         return request
 
     def handleRequest(self, request):
+        """
+        Handle different request
+        """
         if not request:
             return
         lines = str(request).split('\n')
         seq = int(lines[1].split(' ')[1])
         command, filename = lines[0].split(' ')[:2]
         if command == 'DESCRIBE':
+            # get info of the video and audio
             info = self.getInfo(filename)
             self.sendDescribeResponse(seq, info)
         elif command == 'SETUP':
             self.clientVideoRtpPort = int(lines[2].split('=')[-1])
+            # setup the RTP server
             self.setup()
             self.sendSetupResponse(seq)
         elif command == 'PLAY':
@@ -75,15 +98,18 @@ class ServerRtspController:
             pos = None
             if len(lines) > 3:
                 pos = int(lines[3].split(' ')[-1][4:])
+            # play the video
             self.play(pos)
         elif command == 'PAUSE':
             self.pause()
             self.sendPauseResponse(seq)
         elif command == 'TEARDOWN':
+            # pause and teardown
             self.pause()
             self.sendTearDownResponse(seq)
             self.teardown()
         elif command == 'SET_PARAMETER':
+            # get the parameter set
             key, value = lines[3].split(':')
             if key == 'align':
                 align = float(value)
@@ -101,6 +127,9 @@ class ServerRtspController:
             return
 
     def sendDescribeResponse(self, seq, info):
+        """
+        Generate response for DESCRIBE request
+        """
         response = 'RTSP/1.0 200 OK\nCSeq: {seq}\nSession: {session}'.format(**{
             'seq': seq,
             'session': self.sessionid
@@ -119,6 +148,9 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def sendSetupResponse(self, seq):
+        """
+        Generate response for SETUP request
+        """
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(
             **{
                 'seqNum': seq,
@@ -127,6 +159,9 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def sendPlayResponse(self, seq):
+        """
+        Generate response for PLAY request
+        """
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
@@ -134,6 +169,9 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def sendPauseResponse(self, seq):
+        """
+        Generate response for PAUSE request
+        """
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
@@ -141,6 +179,9 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def sendTearDownResponse(self, seq):
+        """
+        Generate response for TEARDOWN request
+        """
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
@@ -148,6 +189,9 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def sendSetParameterResponse(self, seq):
+        """
+        Generate response for SET_PARAMETER request
+        """
         response = 'RTSP/1.0 200 OK\nCSeq: {seqNum}\nSession: {session}'.format(**{
             'seqNum': seq,
             'session': self.sessionid
@@ -155,6 +199,9 @@ class ServerRtspController:
         self.rtspSocket.send(response.encode())
 
     def getInfo(self, filename):
+        """
+        Get info of the video and audio corresponding to the filename
+        """
         self.info = {
             'video': self.getVideoInfo(filename),
             'audio': self.getAudioInfo(filename)
@@ -162,6 +209,9 @@ class ServerRtspController:
         return self.info
 
     def getVideoInfo(self, filename):
+        """
+        Open the video, get the framerate and the length of the video
+        """
         if self.cap is not None:
             self.cap.release()
             self.cap = None
@@ -174,6 +224,9 @@ class ServerRtspController:
         }
 
     def getAudioInfo(self, filename):
+        """
+        Extract the audio from the video, get the framerate of the audio
+        """
         self.audioClip = AudioFileClip(os.path.join(self.videoDir, filename))
         framerate = math.floor(self.audioClip.fps)
         return {
@@ -181,6 +234,9 @@ class ServerRtspController:
         }
 
     def setup(self):
+        """
+        Setup RTP of video and audio respectively, and set some parameters
+        """
         self.videoRtp = VideoServerRtp(self.addr)
         self.videoRtp.setClientInfo(self.clientAddr, self.clientVideoRtpPort)
         self.videoRtp.setSsrc(self.ssrc)
@@ -193,7 +249,11 @@ class ServerRtspController:
         self.audioRtp.setAudio(self.audioClip, self.info['video']['length'] / fs, fs)
 
     def play(self, pos):
-        # pos: .%
+        """
+        Start to send data via RTP connection
+        :param pos: .%
+        """
+        # reposition
         if pos is not None:
             self.videoRtp.pause()
             self.videoRtp.setPosition(pos)
@@ -206,10 +266,17 @@ class ServerRtspController:
             self.audioRtp.start()
 
     def pause(self):
+        """
+        Pause the transport
+        """
         self.videoRtp.pause()
         self.audioRtp.pause()
 
     def teardown(self):
+        """
+        Teardown the connection, and release the resource
+        :return:
+        """
         if self.videoRtp is not None:
             self.videoRtp.stop()
             self.videoRtp = None

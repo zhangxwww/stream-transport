@@ -26,7 +26,7 @@ class ClientRtp(threading.Thread):
 
     def initSocket(self):
         """
-        Init the RTP socket on UDP
+        Init the RTP socket on UDP, and bind the port
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         port = 44444
@@ -51,6 +51,9 @@ class ClientRtp(threading.Thread):
         return self.socket.getsockname()[1]
 
     def run(self):
+        """
+        Start
+        """
         self.beforeRun()
         self._display_interval.wait(0.1)
         while self._stopper.is_set():
@@ -60,6 +63,9 @@ class ClientRtp(threading.Thread):
         self.afterRun()
 
     def stop(self):
+        """
+        Stop the thread
+        """
         self._stopper.clear()
 
     """ Hook functions """

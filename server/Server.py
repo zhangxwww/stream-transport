@@ -6,15 +6,21 @@ from server.SearchEngine import SearchEngine
 
 
 class Server:
+    """
+    The RTSP server, listening for connection
+    """
+
     def __init__(self, addr, rtspPort, rtpPort, videoDir):
+        # host, RTSP port and the RTP port
         self.addr = addr
         self.rtspPort = rtspPort
         self.rtpPort = rtpPort
 
+        # where are the videos
         self.videoDir = videoDir
 
+        # the socket used to listen
         self.listenRtspSocket = None
-        self.search = None
 
         self.initConnection()
         self.startServer()
@@ -30,9 +36,11 @@ class Server:
         while True:
             rtspSocket, clientAddr = self.listenRtspSocket.accept()
             print('{} connected'.format(clientAddr))
+            # create new process for new connection
             multiprocessing.Process(target=self.handleNewConnection, args=(rtspSocket, clientAddr)).start()
 
     def handleNewConnection(self, rtspSocket, clientAddr):
+        # release the source
         self.listenRtspSocket.close()
         ServerRtspController(rtspSocket, self.addr, self.rtpPort, clientAddr, self.videoDir).start()
 
@@ -48,5 +56,7 @@ if __name__ == '__main__':
 
     args = vars(parser.parse_args())
 
+    # the search engine
     multiprocessing.Process(target=SearchEngine, args=(args['host'], 20000, args['dir'])).start()
+    # the server
     Server(args['host'], args['rtspport'], args['rtpport'], args['dir'])
