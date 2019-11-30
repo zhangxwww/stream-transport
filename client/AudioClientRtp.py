@@ -11,29 +11,47 @@ BUF_SIZE = 20480
 
 
 class AudioClientRtp(ClientRtp):
+    """
+    RTP audio stream controller
+    """
+
     def __init__(self, addr, *args, **kwargs):
         super(AudioClientRtp, self).__init__(addr, *args, **kwargs)
 
-        self.seqNum = 0
+        # frame rate
         self.fs = None
-        self.lastFrameNbr = 0
+        # buffer of frames
         self.buffer = BufferQueue()
+        # current volume
         self.volume = 1
+        # output device
         self.out = None
 
     def beforeRun(self):
+        """
+        Start the sound device, and start to receive RTP packet from server
+        """
         self.out = sd.RawOutputStream(samplerate=self.fs, channels=2, dtype='float32', blocksize=1)
         self.out.start()
         self.setInterval(0)
         threading.Thread(target=self.recvRtp, daemon=True).start()
 
     def afterRun(self):
+        """
+        Close the sound device
+        """
         self.out.close()
 
     def running(self):
+        """
+        Periodically output sound stream
+        """
         self.display()
 
     def recvRtp(self):
+        """
+        Receive RTP packet from server
+        """
         while self._stopper.is_set():
             rtpPacket = RtpPacket()
             byteStream = BytesIO(b'')
@@ -50,6 +68,7 @@ class AudioClientRtp(ClientRtp):
 
                     lastFrameNbr = rtpPacket.timestamp()
                     byte = rtpPacket.getPayload()
+                    # put into buffer
                     packetBuffer.put(currentSeqNbr, byte)
 
                     if marker == 1:
@@ -57,6 +76,7 @@ class AudioClientRtp(ClientRtp):
                             seq, byte = packetBuffer.get()
                             if byte is None:
                                 break
+                            # combine the bytes
                             byteStream.write(byte)
                         break
                 except IOError:
@@ -66,14 +86,17 @@ class AudioClientRtp(ClientRtp):
             chunk = np.frombuffer(byteStream.getbuffer())
             if lastFrameNbr == -1:
                 continue
+            # put the chunk into buffer
             self.buffer.put(lastFrameNbr, chunk)
 
     def display(self):
+        """
+        Display the sound
+        """
         seq, chunk = self.buffer.get()
         if chunk is not None:
             chunk = chunk * self.volume
             self.out.write(chunk.tobytes())
-            self.lastFrameNbr = seq
 
     def setFrameRate(self, fs):
         self.fs = fs
@@ -86,4 +109,3 @@ class AudioClientRtp(ClientRtp):
             self.volume = 0
         else:
             self.volume = 1
-
