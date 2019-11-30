@@ -29,6 +29,10 @@ class Client:
         self.forwardButton = None
         self.backwardButton = None
         self.speedButton = None
+        self.fullScreenButton = None
+
+        self.topLevel = None
+        self.topLevelLabel = None
 
         self.videoTime = 0
 
@@ -111,6 +115,11 @@ class Client:
         self.qualityButton["text"] = "Blur"
         self.qualityButton["command"] = self.blur
         self.qualityButton.grid(row=1, column=3, padx=2, pady=2)
+
+        self.fullScreenButton = Button(buttonArea, width=10, padx=3, pady=3)
+        self.fullScreenButton["text"] = "Full Screen"
+        self.fullScreenButton["command"] = self.fullScreen
+        self.fullScreenButton.grid(row=1, column=4, padx=2, pady=2)
 
         self.scale = tkinter.Scale(
             scaleArea, from_=0, to=1000,
@@ -225,9 +234,29 @@ class Client:
         self.speedButton['command'] = self.speedup
         self.rtspController.speed(1)
 
+    def fullScreen(self):
+        self.topLevel = tkinter.Toplevel(self.master, bg='blue')
+        self.topLevel.attributes('-fullscreen', True)
+        self.topLevelLabel = tkinter.Label(self.topLevel)
+        self.topLevelLabel.grid(row=0, column=0, sticky=W + E + N + S, padx=5, pady=5)
+        self.topLevel.focus_set()
+        self.topLevel.bind('<Key-Escape>', self.exitFullScreen)
+        self.topLevel.update()
+        self.rtspController.setScreenSize((self.topLevel.winfo_width(), -1))
+
+    def exitFullScreen(self, _):
+        self.topLevel.destroy()
+        self.topLevel = None
+        self.topLevelLabel = None
+        self.rtspController.setScreenSize((-1, 270))
+        self.master.update()
+
     def updateVideo(self, frame):
-        self.displayLabel.configure(image=frame, height=270)
+        self.displayLabel.configure(image=frame, height=270, width=480)
         self.displayLabel.image = frame
+        if self.topLevelLabel is not None:
+            self.topLevelLabel.configure(image=frame)
+            self.topLevelLabel.image = frame
 
     def updateTimeLabelThread(self):
         wait = threading.Event()

@@ -95,5 +95,4 @@ class AudioServerRtp(ServerRtp):
     def align(self, align):
         # align: seconds
         deltaChunk = int(align / self.chunkLength)
-        print(deltaChunk)
         self.currentChunk += deltaChunk

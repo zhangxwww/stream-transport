@@ -134,6 +134,9 @@ class ClientRtspController:
         self.sendRtspRequest(self.SET_PARAMETER, speed=level)
         self.audioRtp.clearBuffer()
 
+    def setScreenSize(self, size):
+        self.videoRtp.setScreenSize(size)
+
     def sendRtspRequest(self, requestCode, **kwargs):
         """Send RTSP request to the server."""
 

@@ -18,6 +18,8 @@ class VideoClientRtp(ClientRtp):
         self.buffer = BufferQueue()
         self.displayCallback = None
 
+        self.screenSize = (480, 270)
+
     def beforeRun(self):
         threading.Thread(target=self.recvRtp, daemon=True).start()
 
@@ -40,7 +42,6 @@ class VideoClientRtp(ClientRtp):
                     rtpPacket.decode(data)
                     marker = rtpPacket.marker()
                     currentSeqNbr = rtpPacket.seqNum()
-                    # print('Current Seq Num: {}'.format(currentSeqNbr))
 
                     if currentSeqNbr > self.seqNum:
                         # TODO assume in order
@@ -60,12 +61,11 @@ class VideoClientRtp(ClientRtp):
                 continue
             self.buffer.put(lastFrameNbr, frame)
 
-    @staticmethod
-    def decode(byteStream):
+    def decode(self, byteStream):
         try:
             frame = Image.open(byteStream)
-            if frame.size[1] != 270:
-                frame = frame.resize((480, 270))
+            if frame.size[1] != self.screenSize[1]:
+                frame = frame.resize(self.screenSize)
             frame = ImageTk.PhotoImage(frame)
         except OSError:
             frame = None
@@ -83,3 +83,11 @@ class VideoClientRtp(ClientRtp):
     def getPosition(self):
         # frame number
         return self.lastFrameNbr
+
+    def setScreenSize(self, size):
+        if size[0] == -1:
+            self.screenSize = (int(size[1] * 16 / 9), int(size[1]))
+        elif size[1] == -1:
+            self.screenSize = (int(size[0]), int(size[0] * 9 / 16))
+        else:
+            self.screenSize = (int(size[0]), int(size[1]))
