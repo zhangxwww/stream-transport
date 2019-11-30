@@ -3,25 +3,32 @@ import threading
 
 
 class ClientRtp(threading.Thread):
+    """
+    Base class of RTP stream controller
+    """
+
     def __init__(self, addr, *args, **kwargs):
         super(ClientRtp, self).__init__(*args, **kwargs)
 
+        # Addr of client
         self.addr = addr
-        # self.port = port
 
         self.socket = None
         self.initSocket()
 
+        # Used to control pause, resume, stop etc.
         self._stopper = threading.Event()
         self._stopper.set()
         self._display_interval = threading.Event()
 
+        # Default interval to display
         self.interval = 0.04
 
     def initSocket(self):
+        """
+        Init the RTP socket on UDP
+        """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # self.socket.settimeout(0.5)
-        # self.socket.bind((self.addr, self.port))
         port = 44444
         while True:
             try:
@@ -38,6 +45,9 @@ class ClientRtp(threading.Thread):
         self.interval = interval / 1.5
 
     def getPort(self):
+        """
+        Get the port binded
+        """
         return self.socket.getsockname()[1]
 
     def run(self):
@@ -51,6 +61,8 @@ class ClientRtp(threading.Thread):
 
     def stop(self):
         self._stopper.clear()
+
+    """ Hook functions """
 
     def beforeRun(self):
         raise NotImplementedError

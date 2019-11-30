@@ -294,7 +294,9 @@ class ClientRtspController:
                 break
 
     def parseRtspReply(self, data):
-        """Parse the RTSP reply from the server."""
+        """
+        Parse the RTSP reply from the server.
+        """
         lines = str(data).split('\n')
         seqNum = int(lines[1].split(' ')[1])
 
@@ -328,7 +330,9 @@ class ClientRtspController:
                         self.teardownAcked = True
 
     def openRtpPort(self):
-        """Open RTP socket binded to a specified port."""
+        """
+        Open RTP socket binded to a specified port.
+        """
         if self.videoRtp is None:
             try:
                 self.videoRtp = VideoClientRtp('')
@@ -343,6 +347,9 @@ class ClientRtspController:
                 self.warningBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.audioRtpPort)
 
     def stopRtp(self):
+        """
+        Stop the RTP
+        """
         if self.videoRtp is not None:
             self.videoRtp.stop()
             self.videoRtp = None
@@ -354,10 +361,22 @@ class ClientRtspController:
         self.warningBox = box
 
     def getCurrentPosition(self):
+        """
+        Current Position
+        :return: position ( .%)
+        """
         return int(self.videoRtp.getPosition() / self.videoLength * 1000)
 
     def getCurrentTime(self):
+        """
+        Current time
+        :return: secs
+        """
         return int(self.videoRtp.getPosition() / self.videoFrameRate)
 
     def getTotalTime(self):
+        """
+        Total time
+        :return: secs
+        """
         return int(self.videoLength / self.videoFrameRate)

@@ -1,6 +1,11 @@
 import socket
 
+
 class FileExplorer:
+    """
+    Show and search videos on server
+    """
+
     def __init__(self, host, port, updateCallback):
         self.socket = None
         self.serverHost = host
@@ -22,6 +27,10 @@ class FileExplorer:
             self.socket = None
 
     def search(self, info=''):
+        """
+        Search videos on server
+        :param info: part of the file name, or category. Show all of the videos if info == ''
+        """
         try:
             request = 'SEARCH {}'.format(info)
             print(request)

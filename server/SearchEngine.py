@@ -4,7 +4,7 @@ import os
 import json
 
 BUF_SIZE = 2048
-VALID_EXTENSION = ['.mp4', '.avi', '.mkv', '.mov', '.mpg', '.Ogg', '.wmv']
+VALID_EXTENSION = ['mp4', 'avi', 'mkv', 'mov', 'mpg', 'Ogg', 'wmv', '3gp', 'flv', 'vob', 'webm']
 
 class SearchEngine:
     def __init__(self, host, port, workingDir):
@@ -57,7 +57,7 @@ class SearchEngine:
 
     def generateResponse(self, parse):
         files = os.listdir(self.workingDir)
-        files = filter(lambda x: x[-4:] in VALID_EXTENSION, files)
+        files = filter(lambda x: x.split('.')[-1] in VALID_EXTENSION, files)
         res1 = list(filter(lambda x: x.find(parse) != -1, files))
         res2 = self.category.get(parse.lower(), [])
         files = list(set(res1 + res2))

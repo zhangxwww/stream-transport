@@ -10,6 +10,7 @@ class Client:
     """
     Client GUI
     """
+
     def __init__(self, serveraddr, serverport):
         # controls the RTSP
         self.rtspController = None
