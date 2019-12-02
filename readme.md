@@ -39,7 +39,7 @@ moviepy **1.0.0**
 
 Just like 
 
-```python
+```bash
 cd Server
 python3 Server.py --host="0.0.0.0" --port=554 --dir="../../movies/"
 ```
@@ -57,7 +57,7 @@ By the way, it’s very slow to start the server. Please wait until ‘listening
 
 ### Client
 
-```python
+```bash
 cd Client
 python3 Client.py --host="127.0.0.1" --port=554
 ```
