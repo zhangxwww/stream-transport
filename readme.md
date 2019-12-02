@@ -9,6 +9,7 @@
 - Almost all the video formats supported.
 - Multiple clients on a single server.
 - Delay or advance audio track.
+- Remember the position before leave.
 - Show the play list.
 - Search on the server by name or category.
 - Switch to full screen.
@@ -36,7 +37,12 @@ moviepy **1.0.0**
 
 ### Server
 
-Just like `python3 Server.py --host="0.0.0.0" --port=554 --dir="../../movies/"`
+Just like 
+
+```python
+cd Server
+python3 Server.py --host="0.0.0.0" --port=554 --dir="../../movies/"
+```
 
 You can also put a json file called ‘category.json’ in `dir`, so that the server can search videos by category. ‘category.json’ just likes:
 
@@ -51,6 +57,9 @@ By the way, it’s very slow to start the server. Please wait until ‘listening
 
 ### Client
 
-`python3 Client.py --host="127.0.0.1" --port=554`
+```python
+cd Client
+python3 Client.py --host="127.0.0.1" --port=554
+```
 
 The `port` must be the same with the server. Please wait until the video list are shown in the right of the window.
