@@ -14,10 +14,9 @@ class ServerRtspController:
     RTSP controller, and controls RTP stream
     """
 
-    def __init__(self, rtspSocket, addr, port, clientAddr, videoDir):
+    def __init__(self, rtspSocket, addr, clientAddr, videoDir):
         self.rtspSocket = rtspSocket
         self.addr = addr
-        self.rtpPort = port
 
         self.clientAddr = clientAddr[0]
         self.clientRtspPort = clientAddr[1]
@@ -275,7 +274,6 @@ class ServerRtspController:
     def teardown(self):
         """
         Teardown the connection, and release the resource
-        :return:
         """
         if self.videoRtp is not None:
             self.videoRtp.stop()

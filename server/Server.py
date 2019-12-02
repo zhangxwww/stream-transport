@@ -1,5 +1,6 @@
 import socket
 import multiprocessing
+import sys; sys.path.append('..~')
 
 from server.ServerRtspController import ServerRtspController
 from server.SearchEngine import SearchEngine
@@ -10,11 +11,10 @@ class Server:
     The RTSP server, listening for connection
     """
 
-    def __init__(self, addr, rtspPort, rtpPort, videoDir):
+    def __init__(self, addr, rtspPort, videoDir):
         # host, RTSP port and the RTP port
         self.addr = addr
         self.rtspPort = rtspPort
-        self.rtpPort = rtpPort
 
         # where are the videos
         self.videoDir = videoDir
@@ -42,7 +42,7 @@ class Server:
     def handleNewConnection(self, rtspSocket, clientAddr):
         # release the source
         self.listenRtspSocket.close()
-        ServerRtspController(rtspSocket, self.addr, self.rtpPort, clientAddr, self.videoDir).start()
+        ServerRtspController(rtspSocket, self.addr, clientAddr, self.videoDir).start()
 
 
 if __name__ == '__main__':
@@ -50,8 +50,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', type=str, default='0.0.0.0')
-    parser.add_argument('--rtspport', type=int, default=554)
-    parser.add_argument('--rtpport', type=int, default=22222)
+    parser.add_argument('--port', type=int, default=554)
     parser.add_argument('--dir', type=str, default='../../movies/')
 
     args = vars(parser.parse_args())
@@ -59,4 +58,4 @@ if __name__ == '__main__':
     # the search engine
     multiprocessing.Process(target=SearchEngine, args=(args['host'], 20000, args['dir'])).start()
     # the server
-    Server(args['host'], args['rtspport'], args['rtpport'], args['dir'])
+    Server(args['host'], args['port'], args['dir'])

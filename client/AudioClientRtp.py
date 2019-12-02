@@ -1,7 +1,6 @@
 import threading
 import sounddevice as sd
 from io import BytesIO
-import numpy as np
 
 from client.RtpPacket import RtpPacket
 from client.ClientRtp import ClientRtp
@@ -22,8 +21,8 @@ class AudioClientRtp(ClientRtp):
         self.fs = None
         # buffer of frames
         self.buffer = BufferQueue()
-        # current volume
-        self.volume = 1
+        # mute?
+        self.is_mute = False
         # output device
         self.out = None
 
@@ -83,20 +82,20 @@ class AudioClientRtp(ClientRtp):
                     continue
                 except AttributeError:
                     break
-            chunk = np.frombuffer(byteStream.getbuffer())
             if lastFrameNbr == -1:
                 continue
             # put the chunk into buffer
-            self.buffer.put(lastFrameNbr, chunk)
+            self.buffer.put(lastFrameNbr, byteStream.getbuffer())
 
     def display(self):
         """
         Display the sound
         """
         seq, chunk = self.buffer.get()
+        if self.is_mute:
+            return
         if chunk is not None:
-            chunk = chunk * self.volume
-            self.out.write(chunk.tobytes())
+            self.out.write(chunk)
 
     def setFrameRate(self, fs):
         self.fs = fs
@@ -105,7 +104,7 @@ class AudioClientRtp(ClientRtp):
         self.buffer.clear()
 
     def mute(self):
-        if self.volume == 1:
-            self.volume = 0
+        if self.is_mute:
+            self.is_mute = False
         else:
-            self.volume = 1
+            self.is_mute = True

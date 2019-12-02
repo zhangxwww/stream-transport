@@ -1,6 +1,7 @@
 import threading
 from tkinter import *
 import tkinter.messagebox
+import sys; sys.path.append('..')
 
 from client.ClientRtspController import ClientRtspController
 from client.FileExplorer import FileExplorer
