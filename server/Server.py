@@ -1,6 +1,6 @@
 import socket
 import multiprocessing
-import sys; sys.path.append('..~')
+import sys; sys.path.append('..')
 
 from server.ServerRtspController import ServerRtspController
 from server.SearchEngine import SearchEngine
